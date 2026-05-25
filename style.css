@@ -1356,3 +1356,116 @@ body.theme-light .craft-type-tabs {
   color: var(--warning);
 }
 
+/* --- Mobile & Responsive Sidebar Drawer & Tabs Overlay --- */
+.sidebar-backdrop {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  width: 100vw;
+  height: calc(100vh - 64px);
+  background: rgba(5, 6, 9, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 49;
+  display: none;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.sidebar-backdrop.active {
+  display: block;
+  opacity: 1;
+}
+
+.mobile-editor-tabs {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Toggle header button visible on mobile */
+  #btn-toggle-sidebar {
+    display: flex !important;
+  }
+
+  /* Make options panel a slide-out drawer */
+  .editor-options-panel {
+    position: fixed !important;
+    top: 64px;
+    left: 0;
+    bottom: 0;
+    width: 300px !important;
+    height: calc(100vh - 64px) !important;
+    z-index: 50 !important;
+    transform: translateX(-100%);
+    transition: transform var(--transition-normal);
+    box-shadow: var(--shadow-lg);
+    border-right: 1px solid var(--border-color);
+    background-color: rgba(17, 20, 28, 0.98) !important;
+    backdrop-filter: blur(20px);
+  }
+
+  .editor-options-panel.active {
+    transform: translateX(0);
+  }
+
+  /* Make twin editors container show only one pane */
+  .twin-editors-container {
+    flex-direction: column !important;
+    position: relative;
+  }
+
+  .mobile-editor-tabs {
+    display: flex !important;
+    background: rgba(0, 0, 0, 0.15);
+    border-bottom: 1px solid var(--border-color);
+    width: 100%;
+    height: 44px;
+    align-items: center;
+  }
+
+  .mobile-editor-tab {
+    flex: 1;
+    height: 100%;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all var(--transition-fast);
+  }
+
+  .mobile-editor-tab.active {
+    color: var(--cyan);
+    border-bottom-color: var(--cyan);
+    background: rgba(0, 240, 255, 0.02);
+  }
+
+  .editor-pane {
+    height: calc(100vh - 108px) !important; /* Subtract header + mobile tabs */
+    display: none; /* Hide by default; controlled by js */
+  }
+
+  .editor-pane.active-pane {
+    display: flex !important;
+  }
+
+  /* Fixed Floating Action Button (FAB) for Craft button */
+  .craft-trigger-bar {
+    position: fixed !important;
+    bottom: 24px;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    top: auto !important;
+    z-index: 60 !important;
+  }
+
+  .craft-master-btn {
+    padding: 12px 24px !important;
+    font-size: 0.9rem !important;
+    box-shadow: 0 4px 20px rgba(155, 81, 224, 0.4), 0 0 10px rgba(0, 240, 255, 0.2);
+  }
+}
+
+

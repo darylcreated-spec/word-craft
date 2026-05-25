@@ -28,7 +28,11 @@ const state = {
   
   // Reviews
   reviewsList: [],
-  selectedReviewRating: 5
+  selectedReviewRating: 5,
+  
+  // Mobile Responsive States
+  mobileActivePane: 'input',
+  isMobileSidebarOpen: false
 };
 
 // --- Initialization ---
@@ -41,6 +45,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Highlight default options
   updateOptionUI();
+
+  // Initialize mobile responsive active pane
+  initMobileViews();
   
   // Global click listener to close floating synonym popup when clicking outside
   document.addEventListener('click', (e) => {
@@ -179,10 +186,66 @@ function checkUnlockKey(event) {
     verifyUnlockPasscode();
   }
 }
+function initMobileViews() {
+  switchMobileEditorPane(state.mobileActivePane);
+}
+
+function toggleMobileSidebar(isOpen) {
+  const panel = document.querySelector('.editor-options-panel');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  
+  if (isOpen === undefined) {
+    state.isMobileSidebarOpen = !state.isMobileSidebarOpen;
+  } else {
+    state.isMobileSidebarOpen = isOpen;
+  }
+  
+  if (state.isMobileSidebarOpen) {
+    panel.classList.add('active');
+    backdrop.classList.add('active');
+  } else {
+    panel.classList.remove('active');
+    backdrop.classList.remove('active');
+  }
+  audio.playClick();
+}
+
+function switchMobileEditorPane(pane) {
+  state.mobileActivePane = pane;
+  
+  // Select panes inside the twin container
+  const panes = document.querySelectorAll('.twin-editors-container > .editor-pane');
+  const originalPane = panes[0];
+  const resultPane = panes[1];
+  
+  const tabInput = document.getElementById('m-tab-input');
+  const tabOutput = document.getElementById('m-tab-output');
+  
+  if (pane === 'input') {
+    if (originalPane) originalPane.classList.add('active-pane');
+    if (resultPane) resultPane.classList.remove('active-pane');
+    if (tabInput) tabInput.classList.add('active');
+    if (tabOutput) tabOutput.classList.remove('active');
+  } else {
+    if (originalPane) originalPane.classList.remove('active-pane');
+    if (resultPane) resultPane.classList.add('active-pane');
+    if (tabInput) tabInput.classList.remove('active');
+    if (tabOutput) tabOutput.classList.add('active');
+  }
+}
 
 // --- Switch between AI Auto-Craft, Manual Word Craft, and Reviews ---
 function switchCraftType(type) {
   state.craftType = type;
+  
+  // Slide options panel closed on mobile
+  const panel = document.querySelector('.editor-options-panel');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if (panel && backdrop) {
+    panel.classList.remove('active');
+    backdrop.classList.remove('active');
+    state.isMobileSidebarOpen = false;
+  }
   
   // Sidebar Tabs highlight
   document.querySelectorAll('.craft-tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -637,6 +700,11 @@ async function craftText() {
       document.getElementById('editor-output-diff').innerHTML = computeDiffHTML(input, cleanText);
     }
 
+    // Auto-switch to output view on mobile!
+    if (window.innerWidth <= 768) {
+      switchMobileEditorPane('output');
+    }
+
   } catch (error) {
     audio.playError();
     outputArea.value = `[Crafting Failed] Error: ${error.message}\n\nPlease check your API key, connection, or model configurations in Settings.`;
@@ -866,6 +934,11 @@ function analyzeManualText() {
     document.querySelector('#active-word-card .active-word-details').style.display = 'none';
     
     audio.playDiscover();
+
+    // Auto-switch to output view on mobile!
+    if (window.innerWidth <= 768) {
+      switchMobileEditorPane('output');
+    }
     
   } catch (error) {
     audio.playError();

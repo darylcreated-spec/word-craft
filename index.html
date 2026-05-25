@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
   <!-- CSS Stylesheet with Cache Busting -->
-  <link rel="stylesheet" href="style.css?v=1.3.0">
+  <link rel="stylesheet" href="style.css?v=1.4.0">
 </head>
 <body class="theme-dark">
 
@@ -21,6 +21,9 @@
     <!-- Top Navigation Header -->
     <header class="app-header">
       <div class="header-logo">
+        <button class="control-btn" id="btn-toggle-sidebar" title="Toggle Controls" onclick="toggleMobileSidebar()" style="display: none; margin-right: 8px;">
+          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor"/></svg>
+        </button>
         <img src="app_icon.png?v=1.3.0" alt="Word Craft Logo" class="logo-icon">
         <span class="logo-text">Word<span class="highlight">Craft</span></span>
       </div>
@@ -45,6 +48,9 @@
 
     <!-- Main Workspace Container -->
     <main class="app-workspace">
+      
+      <!-- Backdrop Overlay for Mobile Sidebar Drawer -->
+      <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleMobileSidebar(false)"></div>
       
       <!-- TEXT CRAFTSMAN (AI HUMANIZER & PARAPHRASER) -->
       <section id="workspace-editor" class="workspace-section active">
@@ -224,6 +230,12 @@
 
         <!-- Twin Editor Panes -->
         <div class="twin-editors-container">
+          
+          <!-- Mobile-only editor pane switcher tabs -->
+          <div class="mobile-editor-tabs" id="mobile-editor-tabs" style="display: none;">
+            <button class="mobile-editor-tab active" id="m-tab-input" onclick="switchMobileEditorPane('input')">Original Text</button>
+            <button class="mobile-editor-tab" id="m-tab-output" onclick="switchMobileEditorPane('output')">Result</button>
+          </div>
           
           <!-- Original Input Pane -->
           <div class="editor-pane">
@@ -435,8 +447,8 @@
   <!-- Scripts with Cache Busting -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://unpkg.com/compromise" crossorigin="anonymous"></script>
-  <script src="sound.js?v=1.3.0"></script>
-  <script src="docx-reader.js?v=1.3.0"></script>
-  <script src="app.js?v=1.3.0"></script>
+  <script src="sound.js?v=1.4.0"></script>
+  <script src="docx-reader.js?v=1.4.0"></script>
+  <script src="app.js?v=1.4.0"></script>
 </body>
 </html>
