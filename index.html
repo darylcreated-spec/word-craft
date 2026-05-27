@@ -379,9 +379,15 @@
 
         <div class="form-group">
           <label class="form-label" for="settings-model">Model Select</label>
-          <select id="settings-model" class="form-select">
+          <select id="settings-model" class="form-select" onchange="toggleCustomModelDisplay()">
             <!-- Populated dynamically via JS -->
           </select>
+        </div>
+
+        <div class="form-group" id="settings-custom-model-group" style="display: none;">
+          <label class="form-label" for="settings-custom-model">Custom Model ID</label>
+          <input type="text" id="settings-custom-model" placeholder="e.g. deepseek/deepseek-chat" class="form-input">
+          <small class="form-help">Enter any valid model ID (e.g., <code>deepseek/deepseek-chat</code>).</small>
         </div>
 
         <!-- Security Password Lock Settings -->

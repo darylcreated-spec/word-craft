@@ -77,7 +77,6 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// --- LocalStorage Settings ---
 function loadSettingsFromStorage() {
   state.apiProvider = localStorage.getItem('wc_api_provider') || 'gemini';
   const providerEl = document.getElementById('settings-provider');
@@ -92,7 +91,15 @@ function loadSettingsFromStorage() {
   
   updateModelOptions();
   
-  document.getElementById('settings-model').value = state.geminiModel;
+  const modelSelect = document.getElementById('settings-model');
+  const isBuiltIn = Array.from(modelSelect.options).some(opt => opt.value === state.geminiModel);
+  if (isBuiltIn) {
+    modelSelect.value = state.geminiModel;
+  } else {
+    modelSelect.value = 'custom';
+    document.getElementById('settings-custom-model').value = state.geminiModel;
+  }
+  toggleCustomModelDisplay();
 
   state.settingsPassword = localStorage.getItem('wc_settings_password') || '';
   state.isPasswordLockEnabled = localStorage.getItem('wc_settings_locked') === 'true';
@@ -161,13 +168,21 @@ function closeSettings() {
 function saveSettings() {
   const provider = document.getElementById('settings-provider').value;
   const key = document.getElementById('settings-api-key').value.trim();
-  const model = document.getElementById('settings-model').value;
+  let model = document.getElementById('settings-model').value;
   const lockToggle = document.getElementById('settings-lock-toggle').checked;
   const passcode = document.getElementById('settings-passcode').value.trim();
   
   if (lockToggle && !passcode) {
     alert("Please enter a passcode to enable the settings lock!");
     return;
+  }
+  
+  if (model === 'custom') {
+    model = document.getElementById('settings-custom-model').value.trim();
+    if (!model) {
+      alert("Please enter a custom model ID!");
+      return;
+    }
   }
   
   state.apiProvider = provider;
@@ -226,7 +241,8 @@ function updateModelOptions() {
     
     const options = [
       { value: 'gemini-2.5-flash', text: 'Gemini 2.5 Flash (Recommended: Fast & Efficient)' },
-      { value: 'gemini-2.5-pro', text: 'Gemini 2.5 Pro (Extremely Detailed, Higher Latency)' }
+      { value: 'gemini-2.5-pro', text: 'Gemini 2.5 Pro (Extremely Detailed, Higher Latency)' },
+      { value: 'custom', text: 'Custom Model ID...' }
     ];
     options.forEach(opt => {
       const el = document.createElement('option');
@@ -249,7 +265,8 @@ function updateModelOptions() {
       { value: 'google/gemini-2.5-flash', text: 'Gemini 2.5 Flash (via OpenRouter)' },
       { value: 'google/gemini-2.5-pro', text: 'Gemini 2.5 Pro (via OpenRouter)' },
       { value: 'deepseek/deepseek-chat', text: 'DeepSeek V3 (Fast, Cheap & Powerful)' },
-      { value: 'meta-llama/llama-3.3-70b-instruct', text: 'Llama 3.3 70B Instruct (Excellent Paraphraser)' }
+      { value: 'meta-llama/llama-3.3-70b-instruct', text: 'Llama 3.3 70B Instruct (Excellent Paraphraser)' },
+      { value: 'custom', text: 'Custom Model ID...' }
     ];
     options.forEach(opt => {
       const el = document.createElement('option');
@@ -258,6 +275,14 @@ function updateModelOptions() {
       if (state.geminiModel === opt.value) el.selected = true;
       modelSelect.appendChild(el);
     });
+  }
+}
+
+function toggleCustomModelDisplay() {
+  const modelSelect = document.getElementById('settings-model');
+  const customGroup = document.getElementById('settings-custom-model-group');
+  if (modelSelect && customGroup) {
+    customGroup.style.display = modelSelect.value === 'custom' ? 'block' : 'none';
   }
 }
 
