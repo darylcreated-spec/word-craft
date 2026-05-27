@@ -1454,21 +1454,7 @@ body.theme-light .craft-type-tabs {
     display: flex !important;
   }
 
-  /* Fixed Floating Action Button (FAB) for Craft button */
-  .craft-trigger-bar {
-    position: fixed !important;
-    bottom: 24px;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    top: auto !important;
-    z-index: 60 !important;
-  }
 
-  .craft-master-btn {
-    padding: 12px 24px !important;
-    font-size: 0.9rem !important;
-    box-shadow: 0 4px 20px rgba(155, 81, 224, 0.4), 0 0 10px rgba(0, 240, 255, 0.2);
-  }
   .synonym-dropdown-popup {
     max-width: 90vw;
     font-size: 0.8rem;
@@ -1498,6 +1484,171 @@ body.theme-light .craft-type-tabs {
 @keyframes slideUp {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
+}
+
+/* Labeled theme selector styling */
+.theme-selector-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 12px;
+  border-left: 1px solid var(--border-color);
+  padding-left: 12px;
+  height: 32px;
+}
+
+.theme-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.theme-select {
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  outline: none;
+  cursor: pointer;
+  height: 28px;
+  font-family: var(--font-sans);
+  transition: border-color var(--transition-fast);
+}
+
+.theme-select:focus {
+  border-color: var(--border-color-focus);
+}
+
+/* Square craft button styles */
+.craft-master-btn.square-btn {
+  border-radius: 0px !important;
+  padding: 6px 12px !important;
+  font-size: 0.78rem !important;
+  height: 28px !important;
+  line-height: 1 !important;
+  box-shadow: none !important;
+  background: linear-gradient(135deg, var(--primary), var(--cyan)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin: 0 !important;
+}
+
+.craft-master-btn.square-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 240, 255, 0.25) !important;
+}
+
+.craft-master-btn.square-btn:active {
+  transform: translateY(0) !important;
+}
+
+/* Windows 11 Theme (.theme-win11) */
+body.theme-win11 {
+  --bg-app: #1c1c1d;
+  --bg-card: rgba(32, 32, 32, 0.65);
+  --bg-card-hover: rgba(45, 45, 45, 0.85);
+  --bg-input: #202020;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-color-focus: #60cdff;
+  
+  --text-main: #f5f5f5;
+  --text-muted: #9e9e9e;
+  --text-inverse: #000000;
+  
+  --primary: #0078d4;
+  --primary-glow: rgba(0, 120, 212, 0.35);
+  --cyan: #60cdff;
+  --cyan-glow: rgba(96, 205, 255, 0.25);
+  
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 8px;
+  
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.3);
+  
+  font-family: 'Segoe UI Variable Text', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Windows 11 specific component overrides */
+body.theme-win11 .app-header {
+  background-color: rgba(32, 32, 32, 0.8);
+  backdrop-filter: blur(30px) saturate(125%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+body.theme-win11 .editor-options-panel {
+  background-color: rgba(32, 32, 32, 0.4) !important;
+  backdrop-filter: blur(30px);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+body.theme-win11 .editor-pane {
+  background-color: rgba(32, 32, 32, 0.35);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin: 6px;
+  height: calc(100% - 12px) !important;
+}
+
+body.theme-win11 .twin-editors-container {
+  padding: 6px;
+  gap: 12px;
+  background: #1c1c1d;
+}
+
+body.theme-win11 .pane-header {
+  background: rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+body.theme-win11 .pane-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+body.theme-win11 .editor-body textarea {
+  font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
+  font-size: 0.95rem;
+}
+
+body.theme-win11 .mode-select-btn {
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+body.theme-win11 .mode-select-btn.active {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: #60cdff;
+}
+
+body.theme-win11 .pane-action-btn, body.theme-win11 .modal-btn {
+  border-radius: 4px;
+}
+
+body.theme-win11 .craft-master-btn.square-btn {
+  border-radius: 0px !important;
+  background: #0078d4 !important;
+}
+
+body.theme-win11 .craft-master-btn.square-btn:hover {
+  background: #1085e0 !important;
 }
 
 

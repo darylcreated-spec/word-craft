@@ -144,6 +144,8 @@ function loadSettingsFromStorage() {
     document.getElementById('svg-unmuted').style.display = 'none';
     document.getElementById('svg-muted').style.display = 'block';
   }
+  
+  loadThemeFromStorage();
 }
 
 // --- Navigation / Theme / Audio Switchers ---
@@ -160,16 +162,28 @@ function toggleMute() {
   }
 }
 
-function toggleTheme() {
+function loadThemeFromStorage() {
+  const savedTheme = localStorage.getItem('wc_theme') || 'theme-dark';
+  setTheme(savedTheme);
+}
+
+function setTheme(themeName) {
   const body = document.body;
-  if (body.classList.contains('theme-dark')) {
-    body.classList.remove('theme-dark');
-    body.classList.add('theme-light');
-  } else {
-    body.classList.remove('theme-light');
-    body.classList.add('theme-dark');
+  body.classList.remove('theme-dark', 'theme-light', 'theme-win11');
+  body.classList.add(themeName);
+  
+  const themeSelect = document.getElementById('theme-select');
+  if (themeSelect) themeSelect.value = themeName;
+  
+  localStorage.setItem('wc_theme', themeName);
+}
+
+function changeTheme() {
+  const themeSelect = document.getElementById('theme-select');
+  if (themeSelect) {
+    setTheme(themeSelect.value);
+    audio.playClick();
   }
-  audio.playClick();
 }
 
 // --- Settings Dialog ---
