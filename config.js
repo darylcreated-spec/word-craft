@@ -19,10 +19,6 @@ const DEFAULT_CONFIG = {
   
   // Set default model: e.g. 'meta/llama-3.3-70b-instruct', 'gemini-2.5-flash', etc.
   geminiModel: 'meta/llama-3.3-70b-instruct',
-  
-  // Security settings
-  isPasswordLockEnabled: false,
-  settingsPassword: ''
 };
 
 window.DEFAULT_CONFIG = DEFAULT_CONFIG;

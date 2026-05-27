@@ -134,15 +134,7 @@ function loadSettingsFromStorage() {
   }
   toggleCustomModelDisplay();
 
-  const storedPassword = localStorage.getItem('wc_settings_password');
-  state.settingsPassword = storedPassword !== null ? storedPassword : defaults.settingsPassword;
-  
-  const storedLocked = localStorage.getItem('wc_settings_locked');
-  state.isPasswordLockEnabled = storedLocked !== null ? (storedLocked === 'true') : defaults.isPasswordLockEnabled;
-  
-  document.getElementById('settings-lock-toggle').checked = state.isPasswordLockEnabled;
-  document.getElementById('settings-passcode').value = state.settingsPassword;
-  toggleLockSetupDisplay();
+
 
   loadReviews();
 
@@ -182,17 +174,14 @@ function toggleTheme() {
 
 // --- Settings Dialog ---
 function openSettings() {
-  if (state.isPasswordLockEnabled && state.settingsPassword) {
-    document.getElementById('unlock-passcode-input').value = '';
-    document.getElementById('unlock-error-msg').style.display = 'none';
-    document.getElementById('modal-passcode-unlock').classList.add('active');
-    setTimeout(() => {
-      const input = document.getElementById('unlock-passcode-input');
-      if (input) input.focus();
-    }, 300);
-  } else {
-    document.getElementById('modal-settings').classList.add('active');
-  }
+  document.getElementById('unlock-username-input').value = '';
+  document.getElementById('unlock-password-input').value = '';
+  document.getElementById('unlock-error-msg').style.display = 'none';
+  document.getElementById('modal-passcode-unlock').classList.add('active');
+  setTimeout(() => {
+    const input = document.getElementById('unlock-username-input');
+    if (input) input.focus();
+  }, 300);
   audio.playClick();
 }
 
@@ -205,13 +194,6 @@ function saveSettings() {
   const provider = document.getElementById('settings-provider').value;
   const key = document.getElementById('settings-api-key').value.trim();
   let model = document.getElementById('settings-model').value;
-  const lockToggle = document.getElementById('settings-lock-toggle').checked;
-  const passcode = document.getElementById('settings-passcode').value.trim();
-  
-  if (lockToggle && !passcode) {
-    alert("Please enter a passcode to enable the settings lock!");
-    return;
-  }
   
   if (model === 'custom') {
     model = document.getElementById('settings-custom-model').value.trim();
@@ -251,13 +233,9 @@ function saveSettings() {
     state.apiKey = state.nvidiaApiKey;
   }
   state.geminiModel = model;
-  state.isPasswordLockEnabled = lockToggle;
-  state.settingsPassword = passcode;
   
   localStorage.setItem('wc_api_provider', provider);
   localStorage.setItem('wc_gemini_model', model);
-  localStorage.setItem('wc_settings_locked', lockToggle);
-  localStorage.setItem('wc_settings_password', passcode);
   
   closeSettings();
 }
@@ -367,22 +345,19 @@ function toggleCustomModelDisplay() {
   }
 }
 
-function toggleLockSetupDisplay() {
-  const isChecked = document.getElementById('settings-lock-toggle').checked;
-  document.getElementById('settings-lock-setup-fields').style.display = isChecked ? 'block' : 'none';
-}
-
 function verifyUnlockPasscode() {
-  const entered = document.getElementById('unlock-passcode-input').value;
-  if (entered === state.settingsPassword) {
+  const username = document.getElementById('unlock-username-input').value.trim();
+  const password = document.getElementById('unlock-password-input').value;
+  
+  if (username === 'daryl.created@gmail.com' && password === 'Pass@word2026') {
     document.getElementById('modal-passcode-unlock').classList.remove('active');
     document.getElementById('modal-settings').classList.add('active');
     audio.playDiscover();
   } else {
     document.getElementById('unlock-error-msg').style.display = 'block';
     audio.playError();
-    document.getElementById('unlock-passcode-input').value = '';
-    document.getElementById('unlock-passcode-input').focus();
+    document.getElementById('unlock-password-input').value = '';
+    document.getElementById('unlock-password-input').focus();
   }
 }
 
