@@ -26,6 +26,7 @@ const state = {
   apiProvider: 'gemini',
   geminiApiKey: '',
   openRouterApiKey: '',
+  nvidiaApiKey: '',
   
   // Security Password Lock Settings
   settingsPassword: '',
@@ -78,31 +79,47 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function loadSettingsFromStorage() {
-  const defaults = window.DEFAULT_CONFIG || {
-    apiProvider: 'gemini',
+  const defaults = window.DEFAULT_CONFIG || (typeof DEFAULT_CONFIG !== 'undefined' ? DEFAULT_CONFIG : null) || {
+    apiProvider: 'nvidia',
     geminiApiKey: '',
     openRouterApiKey: '',
-    geminiModel: 'gemini-2.5-flash',
+    nvidiaApiKey: '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',
+    geminiModel: 'meta/llama-3.3-70b-instruct',
     settingsPassword: '',
     isPasswordLockEnabled: false
   };
 
+  const storedGeminiKey = localStorage.getItem('wc_api_key');
+  state.geminiApiKey = (storedGeminiKey !== null && storedGeminiKey !== '') ? storedGeminiKey : defaults.geminiApiKey;
+  
+  const storedOpenRouterKey = localStorage.getItem('wc_openrouter_key');
+  state.openRouterApiKey = (storedOpenRouterKey !== null && storedOpenRouterKey !== '') ? storedOpenRouterKey : defaults.openRouterApiKey;
+  
+  const storedNvidiaKey = localStorage.getItem('wc_nvidia_key');
+  state.nvidiaApiKey = (storedNvidiaKey !== null && storedNvidiaKey !== '') ? storedNvidiaKey : defaults.nvidiaApiKey;
+
   const storedProvider = localStorage.getItem('wc_api_provider');
-  state.apiProvider = storedProvider !== null ? storedProvider : defaults.apiProvider;
+  if (storedProvider === 'gemini' && !state.geminiApiKey && state.nvidiaApiKey) {
+    state.apiProvider = 'nvidia';
+  } else if (storedProvider === 'openrouter' && !state.openRouterApiKey && state.nvidiaApiKey) {
+    state.apiProvider = 'nvidia';
+  } else {
+    state.apiProvider = storedProvider !== null ? storedProvider : defaults.apiProvider;
+  }
   
   const providerEl = document.getElementById('settings-provider');
   if (providerEl) providerEl.value = state.apiProvider;
   
-  const storedGeminiKey = localStorage.getItem('wc_api_key');
-  state.geminiApiKey = storedGeminiKey !== null ? storedGeminiKey : defaults.geminiApiKey;
-  
-  const storedOpenRouterKey = localStorage.getItem('wc_openrouter_key');
-  state.openRouterApiKey = storedOpenRouterKey !== null ? storedOpenRouterKey : defaults.openRouterApiKey;
-  
   const storedModel = localStorage.getItem('wc_gemini_model');
   state.geminiModel = storedModel !== null ? storedModel : defaults.geminiModel;
   
-  state.apiKey = state.apiProvider === 'gemini' ? state.geminiApiKey : state.openRouterApiKey;
+  if (state.apiProvider === 'gemini') {
+    state.apiKey = state.geminiApiKey;
+  } else if (state.apiProvider === 'openrouter') {
+    state.apiKey = state.openRouterApiKey;
+  } else {
+    state.apiKey = state.nvidiaApiKey;
+  }
   document.getElementById('settings-api-key').value = state.apiKey;
   
   updateModelOptions();
@@ -204,15 +221,35 @@ function saveSettings() {
     }
   }
   
+  const defaults = window.DEFAULT_CONFIG || (typeof DEFAULT_CONFIG !== 'undefined' ? DEFAULT_CONFIG : null) || {
+    apiProvider: 'nvidia',
+    geminiApiKey: '',
+    openRouterApiKey: '',
+    nvidiaApiKey: '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',
+    geminiModel: 'meta/llama-3.3-70b-instruct',
+    settingsPassword: '',
+    isPasswordLockEnabled: false
+  };
+
   state.apiProvider = provider;
   if (provider === 'gemini') {
-    state.geminiApiKey = key;
+    state.geminiApiKey = key || defaults.geminiApiKey;
     localStorage.setItem('wc_api_key', key);
-  } else {
-    state.openRouterApiKey = key;
+  } else if (provider === 'openrouter') {
+    state.openRouterApiKey = key || defaults.openRouterApiKey;
     localStorage.setItem('wc_openrouter_key', key);
+  } else {
+    state.nvidiaApiKey = key || defaults.nvidiaApiKey;
+    localStorage.setItem('wc_nvidia_key', key);
   }
-  state.apiKey = key;
+
+  if (provider === 'gemini') {
+    state.apiKey = state.geminiApiKey;
+  } else if (provider === 'openrouter') {
+    state.apiKey = state.openRouterApiKey;
+  } else {
+    state.apiKey = state.nvidiaApiKey;
+  }
   state.geminiModel = model;
   state.isPasswordLockEnabled = lockToggle;
   state.settingsPassword = passcode;
@@ -231,8 +268,10 @@ function toggleApiProvider() {
   
   if (provider === 'gemini') {
     keyInput.value = state.geminiApiKey || '';
-  } else {
+  } else if (provider === 'openrouter') {
     keyInput.value = state.openRouterApiKey || '';
+  } else {
+    keyInput.value = state.nvidiaApiKey || '';
   }
   
   updateModelOptions();
@@ -248,6 +287,9 @@ function updateModelOptions() {
   if (!modelSelect) return;
   modelSelect.innerHTML = '';
   
+  let options = [];
+  let defaultModelForProvider = '';
+  
   if (provider === 'gemini') {
     if (lblApiKey) lblApiKey.textContent = "Gemini API Key";
     if (keyInput) keyInput.placeholder = "AIzaSy...";
@@ -258,19 +300,13 @@ function updateModelOptions() {
       `;
     }
     
-    const options = [
+    defaultModelForProvider = 'gemini-2.5-flash';
+    options = [
       { value: 'gemini-2.5-flash', text: 'Gemini 2.5 Flash (Recommended: Fast & Efficient)' },
       { value: 'gemini-2.5-pro', text: 'Gemini 2.5 Pro (Extremely Detailed, Higher Latency)' },
       { value: 'custom', text: 'Custom Model ID...' }
     ];
-    options.forEach(opt => {
-      const el = document.createElement('option');
-      el.value = opt.value;
-      el.textContent = opt.text;
-      if (state.geminiModel === opt.value) el.selected = true;
-      modelSelect.appendChild(el);
-    });
-  } else {
+  } else if (provider === 'openrouter') {
     if (lblApiKey) lblApiKey.textContent = "OpenRouter API Key";
     if (keyInput) keyInput.placeholder = "sk-or-v1-...";
     if (apiGuide) {
@@ -280,21 +316,47 @@ function updateModelOptions() {
       `;
     }
     
-    const options = [
+    defaultModelForProvider = 'google/gemini-2.5-flash';
+    options = [
       { value: 'google/gemini-2.5-flash', text: 'Gemini 2.5 Flash (via OpenRouter)' },
       { value: 'google/gemini-2.5-pro', text: 'Gemini 2.5 Pro (via OpenRouter)' },
       { value: 'deepseek/deepseek-chat', text: 'DeepSeek V3 (Fast, Cheap & Powerful)' },
       { value: 'meta-llama/llama-3.3-70b-instruct', text: 'Llama 3.3 70B Instruct (Excellent Paraphraser)' },
       { value: 'custom', text: 'Custom Model ID...' }
     ];
-    options.forEach(opt => {
-      const el = document.createElement('option');
-      el.value = opt.value;
-      el.textContent = opt.text;
-      if (state.geminiModel === opt.value) el.selected = true;
-      modelSelect.appendChild(el);
-    });
+  } else {
+    if (lblApiKey) lblApiKey.textContent = "NVIDIA API Key";
+    if (keyInput) keyInput.placeholder = "nvapi-...";
+    if (apiGuide) {
+      apiGuide.innerHTML = `
+        <strong>Need an NVIDIA API Key?</strong>
+        <p>Get a key from the <a href="https://build.nvidia.com/" target="_blank" rel="noopener">NVIDIA NIM Console</a>.</p>
+      `;
+    }
+    
+    defaultModelForProvider = 'meta/llama-3.3-70b-instruct';
+    options = [
+      { value: 'meta/llama-3.3-70b-instruct', text: 'Llama 3.3 70B Instruct (Recommended: Fast & High Quality)' },
+      { value: 'nvidia/llama-3.1-nemotron-70b-instruct', text: 'Llama 3.1 Nemotron 70B Instruct' },
+      { value: 'deepseek/deepseek-r1', text: 'DeepSeek R1 (Reasoning model)' },
+      { value: 'custom', text: 'Custom Model ID...' }
+    ];
   }
+
+  const isCompatible = options.some(opt => opt.value === state.geminiModel && opt.value !== 'custom');
+  if (!isCompatible && state.geminiModel !== 'custom') {
+    state.geminiModel = defaultModelForProvider;
+    const customInput = document.getElementById('settings-custom-model');
+    if (customInput) customInput.value = state.geminiModel;
+  }
+  
+  options.forEach(opt => {
+    const el = document.createElement('option');
+    el.value = opt.value;
+    el.textContent = opt.text;
+    if (state.geminiModel === opt.value) el.selected = true;
+    modelSelect.appendChild(el);
+  });
 }
 
 function toggleCustomModelDisplay() {
@@ -911,7 +973,10 @@ async function craftText() {
         cleanText = cleanText.replace(/^```[a-zA-Z]*\n/, '').replace(/\n```$/, '');
       }
     } else {
-      const url = "https://openrouter.ai/api/v1/chat/completions";
+      const url = state.apiProvider === 'openrouter'
+        ? "https://openrouter.ai/api/v1/chat/completions"
+        : "https://integrate.api.nvidia.com/v1/chat/completions";
+        
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -929,7 +994,7 @@ async function craftText() {
       
       if (!response.ok) {
         const errData = await response.json();
-        throw new Error(errData.error?.message || "OpenRouter error " + response.status);
+        throw new Error(errData.error?.message || `${state.apiProvider === 'openrouter' ? 'OpenRouter' : 'NVIDIA'} error ` + response.status);
       }
       
       const resData = await response.json();

@@ -5,19 +5,25 @@
 // If a user enters their own key, it is saved in browser localStorage and takes precedence.
 
 const DEFAULT_CONFIG = {
-  // Choose default provider: 'gemini' or 'openrouter'
-  apiProvider: 'gemini', 
+  // Choose default provider: 'gemini', 'openrouter', or 'nvidia'
+  apiProvider: 'nvidia', 
   
   // Paste your default Gemini API Key (native) below:
   geminiApiKey: '', 
   
   // Paste your default OpenRouter API Key below:
   openRouterApiKey: '', 
+
+  // Paste your default NVIDIA NIM API Key below:
+  nvidiaApiKey: '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', 
   
-  // Set default model: e.g. 'gemini-2.5-flash', 'google/gemini-2.5-flash', 'deepseek/deepseek-chat', etc.
-  geminiModel: 'gemini-2.5-flash',
+  // Set default model: e.g. 'meta/llama-3.3-70b-instruct', 'gemini-2.5-flash', etc.
+  geminiModel: 'meta/llama-3.3-70b-instruct',
   
   // Security settings
   isPasswordLockEnabled: false,
   settingsPassword: ''
 };
+
+window.DEFAULT_CONFIG = DEFAULT_CONFIG;
+
