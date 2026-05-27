@@ -1184,6 +1184,7 @@ async function selectWord(index, event) {
   popup.classList.add('active');
   
   // Calculate best position to prevent viewport overflows
+  const rect = event.target.getBoundingClientRect();
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
   
@@ -1416,6 +1417,52 @@ function copyManualText() {
   const oldText = copyBtn.textContent;
   copyBtn.textContent = "Copied!";
   setTimeout(() => copyBtn.textContent = oldText, 1500);
+}
+
+function clearCraftedOutput() {
+  audio.playClick();
+  
+  // Clear Auto Mode Output and Diff
+  const outputArea = document.getElementById('editor-output');
+  if (outputArea) outputArea.value = '';
+  
+  const diffBox = document.getElementById('editor-output-diff');
+  if (diffBox) diffBox.innerHTML = '';
+  
+  // Clear Manual Mode state and container
+  state.manualTokens = [];
+  state.selectedWordIndex = null;
+  state.manualHistory = [];
+  state.manualHistoryIndex = -1;
+  updateUndoRedoButtons();
+  
+  const manualOutput = document.getElementById('editor-output-manual');
+  if (manualOutput) {
+    manualOutput.innerHTML = `
+      <div class="placeholder-word-text centered">
+        Enter text on the left and click "ANALYZE TEXT" to identify parts of speech and swap synonyms word-by-word.
+      </div>
+    `;
+  }
+  
+  // Reset active word card details
+  const cardPlaceholder = document.querySelector('#active-word-card .placeholder-word-text');
+  const cardDetails = document.querySelector('#active-word-card .active-word-details');
+  if (cardPlaceholder && cardDetails) {
+    cardPlaceholder.style.display = 'block';
+    cardDetails.style.display = 'none';
+  }
+  
+  // Reset auto history state
+  state.autoHistory = [];
+  state.autoHistoryIndex = -1;
+  updateAutoUndoRedoButtons();
+  
+  // Close popup
+  const popup = document.getElementById('synonym-popup');
+  if (popup) popup.classList.remove('active');
+  
+  updateInputStats();
 }
 
 // --- REVIEWS & FEEDBACK ENGINE ---
