@@ -78,13 +78,29 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function loadSettingsFromStorage() {
-  state.apiProvider = localStorage.getItem('wc_api_provider') || 'gemini';
+  const defaults = window.DEFAULT_CONFIG || {
+    apiProvider: 'gemini',
+    geminiApiKey: '',
+    openRouterApiKey: '',
+    geminiModel: 'gemini-2.5-flash',
+    settingsPassword: '',
+    isPasswordLockEnabled: false
+  };
+
+  const storedProvider = localStorage.getItem('wc_api_provider');
+  state.apiProvider = storedProvider !== null ? storedProvider : defaults.apiProvider;
+  
   const providerEl = document.getElementById('settings-provider');
   if (providerEl) providerEl.value = state.apiProvider;
   
-  state.geminiApiKey = localStorage.getItem('wc_api_key') || '';
-  state.openRouterApiKey = localStorage.getItem('wc_openrouter_key') || '';
-  state.geminiModel = localStorage.getItem('wc_gemini_model') || 'gemini-2.5-flash';
+  const storedGeminiKey = localStorage.getItem('wc_api_key');
+  state.geminiApiKey = storedGeminiKey !== null ? storedGeminiKey : defaults.geminiApiKey;
+  
+  const storedOpenRouterKey = localStorage.getItem('wc_openrouter_key');
+  state.openRouterApiKey = storedOpenRouterKey !== null ? storedOpenRouterKey : defaults.openRouterApiKey;
+  
+  const storedModel = localStorage.getItem('wc_gemini_model');
+  state.geminiModel = storedModel !== null ? storedModel : defaults.geminiModel;
   
   state.apiKey = state.apiProvider === 'gemini' ? state.geminiApiKey : state.openRouterApiKey;
   document.getElementById('settings-api-key').value = state.apiKey;
@@ -101,8 +117,11 @@ function loadSettingsFromStorage() {
   }
   toggleCustomModelDisplay();
 
-  state.settingsPassword = localStorage.getItem('wc_settings_password') || '';
-  state.isPasswordLockEnabled = localStorage.getItem('wc_settings_locked') === 'true';
+  const storedPassword = localStorage.getItem('wc_settings_password');
+  state.settingsPassword = storedPassword !== null ? storedPassword : defaults.settingsPassword;
+  
+  const storedLocked = localStorage.getItem('wc_settings_locked');
+  state.isPasswordLockEnabled = storedLocked !== null ? (storedLocked === 'true') : defaults.isPasswordLockEnabled;
   
   document.getElementById('settings-lock-toggle').checked = state.isPasswordLockEnabled;
   document.getElementById('settings-passcode').value = state.settingsPassword;
