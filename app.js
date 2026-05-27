@@ -23,6 +23,9 @@ const state = {
   // Settings
   apiKey: '',
   geminiModel: 'gemini-2.5-flash',
+  apiProvider: 'gemini',
+  geminiApiKey: '',
+  openRouterApiKey: '',
   
   // Security Password Lock Settings
   settingsPassword: '',
@@ -76,10 +79,19 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // --- LocalStorage Settings ---
 function loadSettingsFromStorage() {
-  state.apiKey = localStorage.getItem('wc_api_key') || '';
+  state.apiProvider = localStorage.getItem('wc_api_provider') || 'gemini';
+  const providerEl = document.getElementById('settings-provider');
+  if (providerEl) providerEl.value = state.apiProvider;
+  
+  state.geminiApiKey = localStorage.getItem('wc_api_key') || '';
+  state.openRouterApiKey = localStorage.getItem('wc_openrouter_key') || '';
   state.geminiModel = localStorage.getItem('wc_gemini_model') || 'gemini-2.5-flash';
   
+  state.apiKey = state.apiProvider === 'gemini' ? state.geminiApiKey : state.openRouterApiKey;
   document.getElementById('settings-api-key').value = state.apiKey;
+  
+  updateModelOptions();
+  
   document.getElementById('settings-model').value = state.geminiModel;
 
   state.settingsPassword = localStorage.getItem('wc_settings_password') || '';
@@ -147,6 +159,7 @@ function closeSettings() {
 }
 
 function saveSettings() {
+  const provider = document.getElementById('settings-provider').value;
   const key = document.getElementById('settings-api-key').value.trim();
   const model = document.getElementById('settings-model').value;
   const lockToggle = document.getElementById('settings-lock-toggle').checked;
@@ -157,17 +170,95 @@ function saveSettings() {
     return;
   }
   
+  state.apiProvider = provider;
+  if (provider === 'gemini') {
+    state.geminiApiKey = key;
+    localStorage.setItem('wc_api_key', key);
+  } else {
+    state.openRouterApiKey = key;
+    localStorage.setItem('wc_openrouter_key', key);
+  }
   state.apiKey = key;
   state.geminiModel = model;
   state.isPasswordLockEnabled = lockToggle;
   state.settingsPassword = passcode;
   
-  localStorage.setItem('wc_api_key', key);
+  localStorage.setItem('wc_api_provider', provider);
   localStorage.setItem('wc_gemini_model', model);
   localStorage.setItem('wc_settings_locked', lockToggle);
   localStorage.setItem('wc_settings_password', passcode);
   
   closeSettings();
+}
+
+function toggleApiProvider() {
+  const provider = document.getElementById('settings-provider').value;
+  const keyInput = document.getElementById('settings-api-key');
+  
+  if (provider === 'gemini') {
+    keyInput.value = state.geminiApiKey || '';
+  } else {
+    keyInput.value = state.openRouterApiKey || '';
+  }
+  
+  updateModelOptions();
+}
+
+function updateModelOptions() {
+  const provider = document.getElementById('settings-provider').value;
+  const modelSelect = document.getElementById('settings-model');
+  const lblApiKey = document.getElementById('lbl-api-key');
+  const keyInput = document.getElementById('settings-api-key');
+  const apiGuide = document.querySelector('.api-guide');
+  
+  if (!modelSelect) return;
+  modelSelect.innerHTML = '';
+  
+  if (provider === 'gemini') {
+    if (lblApiKey) lblApiKey.textContent = "Gemini API Key";
+    if (keyInput) keyInput.placeholder = "AIzaSy...";
+    if (apiGuide) {
+      apiGuide.innerHTML = `
+        <strong>Need a key?</strong>
+        <p>Get a free Gemini API key from the <a href="https://aistudio.google.com/" target="_blank" rel="noopener">Google AI Studio</a>.</p>
+      `;
+    }
+    
+    const options = [
+      { value: 'gemini-2.5-flash', text: 'Gemini 2.5 Flash (Recommended: Fast & Efficient)' },
+      { value: 'gemini-2.5-pro', text: 'Gemini 2.5 Pro (Extremely Detailed, Higher Latency)' }
+    ];
+    options.forEach(opt => {
+      const el = document.createElement('option');
+      el.value = opt.value;
+      el.textContent = opt.text;
+      if (state.geminiModel === opt.value) el.selected = true;
+      modelSelect.appendChild(el);
+    });
+  } else {
+    if (lblApiKey) lblApiKey.textContent = "OpenRouter API Key";
+    if (keyInput) keyInput.placeholder = "sk-or-v1-...";
+    if (apiGuide) {
+      apiGuide.innerHTML = `
+        <strong>Need an OpenRouter key?</strong>
+        <p>Get an API key from the <a href="https://openrouter.ai/" target="_blank" rel="noopener">OpenRouter Console</a>.</p>
+      `;
+    }
+    
+    const options = [
+      { value: 'google/gemini-2.5-flash', text: 'Gemini 2.5 Flash (via OpenRouter)' },
+      { value: 'google/gemini-2.5-pro', text: 'Gemini 2.5 Pro (via OpenRouter)' },
+      { value: 'deepseek/deepseek-chat', text: 'DeepSeek V3 (Fast, Cheap & Powerful)' },
+      { value: 'meta-llama/llama-3.3-70b-instruct', text: 'Llama 3.3 70B Instruct (Excellent Paraphraser)' }
+    ];
+    options.forEach(opt => {
+      const el = document.createElement('option');
+      el.value = opt.value;
+      el.textContent = opt.text;
+      if (state.geminiModel === opt.value) el.selected = true;
+      modelSelect.appendChild(el);
+    });
+  }
 }
 
 function toggleLockSetupDisplay() {
@@ -747,31 +838,63 @@ async function craftText() {
       promptText = `Paraphrase this text:\n\n${input}`;
     }
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${state.geminiModel}:generateContent?key=${state.apiKey}`;
+    let cleanText = "";
     
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{ text: `${systemInstruction}\n\nUser Input:\n${promptText}` }]
-        }]
-      })
-    });
-    
-    if (!response.ok) {
-      const errData = await response.json();
-      throw new Error(errData.error?.message || "HTTP error " + response.status);
-    }
-    
-    const resData = await response.json();
-    const resultText = resData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    
-    let cleanText = resultText.trim();
-    if (cleanText.startsWith("```")) {
-      cleanText = cleanText.replace(/^```[a-zA-Z]*\n/, '').replace(/\n```$/, '');
+    if (state.apiProvider === 'gemini') {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${state.geminiModel}:generateContent?key=${state.apiKey}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: `${systemInstruction}\n\nUser Input:\n${promptText}` }]
+          }]
+        })
+      });
+      
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error?.message || "HTTP error " + response.status);
+      }
+      
+      const resData = await response.json();
+      const resultText = resData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      
+      cleanText = resultText.trim();
+      if (cleanText.startsWith("```")) {
+        cleanText = cleanText.replace(/^```[a-zA-Z]*\n/, '').replace(/\n```$/, '');
+      }
+    } else {
+      const url = "https://openrouter.ai/api/v1/chat/completions";
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${state.apiKey}`
+        },
+        body: JSON.stringify({
+          model: state.geminiModel,
+          messages: [
+            { role: 'system', content: systemInstruction },
+            { role: 'user', content: promptText }
+          ]
+        })
+      });
+      
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error?.message || "OpenRouter error " + response.status);
+      }
+      
+      const resData = await response.json();
+      const resultText = resData.choices?.[0]?.message?.content || '';
+      
+      cleanText = resultText.trim();
+      if (cleanText.startsWith("```")) {
+        cleanText = cleanText.replace(/^```[a-zA-Z]*\n/, '').replace(/\n```$/, '');
+      }
     }
 
     outputArea.value = cleanText;
