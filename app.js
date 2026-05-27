@@ -10,6 +10,8 @@ const state = {
   editorTone: 'professional',
   humanizeStrength: 2, // 1 (Standard), 2 (Balanced), 3 (Deep Human)
   showDiff: false,
+  autoHistory: [], // AI craft history stack
+  autoHistoryIndex: -1, // AI craft history pointer
   
   // Manual Mode States
   manualTokens: [], // Parsed tokens: { text, pre, post, tags, posGroup }
@@ -48,6 +50,17 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Initialize mobile responsive active pane
   initMobileViews();
+  
+  // Keyboard Shortcut: Ctrl/Cmd + Enter to craft/analyze text
+  const editorInput = document.getElementById('editor-input');
+  if (editorInput) {
+    editorInput.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        triggerMainAction();
+      }
+    });
+  }
   
   // Global click listener to close floating synonym popup when clicking outside
   document.addEventListener('click', (e) => {
@@ -373,6 +386,9 @@ function updateInputStats() {
   document.getElementById('input-word-count').textContent = `${wordCount} words`;
   document.getElementById('input-char-count').textContent = `${charCount} characters`;
   
+  // Real-time language detection warning
+  checkLanguageWarning(text);
+  
   if (state.craftType === 'auto') {
     const outputText = document.getElementById('editor-output').value;
     const outWordCount = outputText.trim() === '' ? 0 : outputText.trim().split(/\s+/).length;
@@ -471,22 +487,68 @@ async function parseAndLoadFile(file) {
   audio.playClick();
   const inputArea = document.getElementById('editor-input');
   
+  // 1. File Size Warning (> 1.5MB)
+  if (file.size > 1.5 * 1024 * 1024) {
+    const proceed = confirm("This file is very large. Loading it may temporarily freeze the interface. Continue?");
+    if (!proceed) {
+      return;
+    }
+  }
+
+  // 2. CSV Rejection
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext === 'csv') {
+    alert("CSV file format is not supported. Please import a Word (.docx), PDF (.pdf), or Text (.txt) file.");
+    audio.playError();
+    return;
+  }
+
+  if (ext !== 'docx' && ext !== 'txt' && ext !== 'pdf') {
+    alert("Unsupported file type! Please upload a Microsoft Word .docx, PDF .pdf, or plain text .txt file.");
+    audio.playError();
+    return;
+  }
+
   try {
     inputArea.placeholder = "Reading file...";
     let text = '';
     
-    if (file.name.endsWith('.docx')) {
+    if (ext === 'docx') {
       text = await docxReader.read(file);
-    } else if (file.name.endsWith('.txt')) {
-      text = await new Promise((resolve) => {
+    } else if (ext === 'txt') {
+      text = await new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = (e) => reject(e);
         reader.readAsText(file);
       });
-    } else {
-      alert("Unsupported file type! Please upload a Microsoft Word .docx or plain text .txt file.");
-      inputArea.placeholder = "Paste your text here...";
-      return;
+    } else if (ext === 'pdf') {
+      text = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            const typedarray = new Uint8Array(e.target.result);
+            if (window.pdfjsLib) {
+              pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+            } else {
+              throw new Error("PDF.js library is not loaded.");
+            }
+            const pdf = await pdfjsLib.getDocument(typedarray).promise;
+            let fullText = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+              const page = await pdf.getPage(i);
+              const textContent = await page.getTextContent();
+              const pageText = textContent.items.map(item => item.str).join(' ');
+              fullText += pageText + '\n';
+            }
+            resolve(fullText);
+          } catch (err) {
+            reject(err);
+          }
+        };
+        reader.onerror = (err) => reject(err);
+        reader.readAsArrayBuffer(file);
+      });
     }
     
     inputArea.value = text;
@@ -494,7 +556,7 @@ async function parseAndLoadFile(file) {
   } catch (error) {
     alert("Error reading file: " + error.message);
   } finally {
-    inputArea.placeholder = "Paste your text, Google Doc paragraphs, or drag and drop a Microsoft Word (.docx) file here to start crafting...";
+    inputArea.placeholder = "Paste your text, Google Doc paragraphs, or drag and drop a Microsoft Word (.docx), PDF (.pdf), or Text (.txt) file here to start crafting...";
   }
 }
 
@@ -584,6 +646,14 @@ async function craftText() {
   const input = document.getElementById('editor-input').value.trim();
   if (!input) {
     alert("Please enter or paste text to craft first!");
+    audio.playError();
+    return;
+  }
+  
+  const words = input.split(/\s+/).filter(Boolean);
+  if (words.length < 3) {
+    alert("Please enter at least 3 words to craft!");
+    audio.playError();
     return;
   }
   
@@ -604,6 +674,9 @@ async function craftText() {
   const strengthSlider = document.getElementById('humanize-strength');
   state.humanizeStrength = parseInt(strengthSlider.value);
   
+  const preserveFormat = document.getElementById('chk-preserve-format').checked;
+  const registerLock = document.getElementById('chk-register-lock').checked;
+  
   craftBtn.disabled = true;
   craftBtnText.textContent = "CRAFTING...";
   
@@ -614,6 +687,17 @@ async function craftText() {
     let promptText = "";
     
     const toneText = state.editorTone.toUpperCase();
+    
+    let extraDirectives = "";
+    if (preserveFormat) {
+      extraDirectives += "\n- PRESERVE FORMATTING: You MUST maintain the exact layout, indentation, list structure (bulleted lists using '-', '•', numbered lists using '1.', etc.), and line breaks of the original text. Do not merge bullet points or numbered steps into standard paragraphs.";
+    } else {
+      extraDirectives += "\n- FORMATTING: You may reflow text and paragraphs to improve readability.";
+    }
+    
+    if (registerLock) {
+      extraDirectives += "\n- REGISTER LOCK: You MUST lock the dialect, register, and personal style of the input text. Do not correct colloquial words, informal phrasing, or slang (e.g. 'y'all', 'gonna', 'wanna', 'dunno'). Retain these expressions exactly as they are in the output to preserve the original voice.";
+    }
     
     if (state.editorMode === 'humanize') {
       const strength = state.humanizeStrength;
@@ -634,7 +718,9 @@ async function craftText() {
         2. Adjust the tone to: ${toneText}.
         3. Humanize directives: ${humanizeDirectives}
         4. ABSOLUTELY AVOID THESE CLICHÉ WORDS: delve, testament, furthermore, moreover, tapestry, beacon, intricate, notably, pinnacle, in conclusion, it is important to note, crucial role.
-        5. Output ONLY the rewritten text, with no introduction, explanation, or markdown wrappers unless necessary for document layout.
+        5. Preserve and carry over all emoji characters present in the original text. Do not strip them.
+        6. Output ONLY the rewritten text, with no introduction, explanation, or markdown wrappers unless necessary for document layout.
+        ${extraDirectives}
       `;
       promptText = `Humanize this text while ensuring the tone is ${state.editorTone}:\n\n${input}`;
       
@@ -643,7 +729,9 @@ async function craftText() {
         You are Word Craft, a meticulous editor.
         Fix all grammatical, spelling, punctuation, and typographical errors in the text.
         Enhance readability and vocabulary where appropriate to match a ${toneText} tone, but preserve the author's original voice, style, and sentence configurations as much as possible.
-        Output ONLY the corrected text.
+        Preserve and carry over all emoji characters present in the original text. Do not strip them.
+        Output ONLY the corrected text, with no introduction or explanation.
+        ${extraDirectives}
       `;
       promptText = `Fix grammar in this text:\n\n${input}`;
       
@@ -652,7 +740,9 @@ async function craftText() {
         You are Word Craft, a master paraphraser.
         Completely restate and rewrite the user's text. Shift the sentence structures, use creative synonyms, and alter the sentence ordering if it improves flow.
         Maintain a ${toneText} tone. Ensure the core argument and original details are preserved.
-        Output ONLY the paraphrased text.
+        Preserve and carry over all emoji characters present in the original text. Do not strip them.
+        Output ONLY the paraphrased text, with no introduction or explanation.
+        ${extraDirectives}
       `;
       promptText = `Paraphrase this text:\n\n${input}`;
     }
@@ -685,6 +775,9 @@ async function craftText() {
     }
 
     outputArea.value = cleanText;
+    
+    // Push successful craft to history
+    pushAutoHistory(cleanText);
     
     const outWordCount = cleanText.split(/\s+/).length;
     document.getElementById('output-word-count').textContent = `${outWordCount} words`;
@@ -877,6 +970,14 @@ function analyzeManualText() {
   const input = document.getElementById('editor-input').value.trim();
   if (!input) {
     alert("Please enter or paste text to analyze first!");
+    audio.playError();
+    return;
+  }
+  
+  const words = input.split(/\s+/).filter(Boolean);
+  if (words.length < 3) {
+    alert("Please enter at least 3 words to analyze!");
+    audio.playError();
     return;
   }
   
@@ -1082,37 +1183,72 @@ async function selectWord(index, event) {
                      <div class="dropdown-syn-item" style="opacity: 0.5;">Loading...</div>`;
   popup.classList.add('active');
   
-  // Place popup below the clicked span element
-  const rect = event.target.getBoundingClientRect();
+  // Calculate best position to prevent viewport overflows
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
   
-  // Absolute offset inside workspace
-  popup.style.left = `${rect.left}px`;
-  popup.style.top = `${rect.bottom + 6}px`;
+  // Render popup temporarily invisible to get height and width
+  popup.style.visibility = 'hidden';
+  popup.style.display = 'block';
+  const popupRect = popup.getBoundingClientRect();
+  const w = popupRect.width || 220;
+  const h = popupRect.height || 200;
+  popup.style.display = '';
+  popup.style.visibility = '';
+  
+  let left = rect.left;
+  if (left + w > viewportWidth - 12) {
+    left = viewportWidth - w - 12;
+  }
+  if (left < 12) {
+    left = 12;
+  }
+  
+  let top = rect.bottom + 6;
+  if (top + h > viewportHeight - 12 && rect.top > h + 12) {
+    top = rect.top - h - 6;
+  }
+  
+  popup.style.left = `${left}px`;
+  popup.style.top = `${top}px`;
+  popup.classList.add('active');
 
   try {
-    // Query Datamuse API for synonyms and antonyms in parallel
+    // Query Datamuse API for synonyms, means like, and antonyms in parallel
     const relUrl = `https://api.datamuse.com/words?rel_syn=${cleanWord}&max=8`;
     const mlUrl = `https://api.datamuse.com/words?ml=${cleanWord}&max=12`;
     const antUrl = `https://api.datamuse.com/words?rel_ant=${cleanWord}&max=8`;
+    const trgUrl = `https://api.datamuse.com/words?rel_trg=${cleanWord}&max=8`;
     
     let synonyms = [];
     let antonyms = [];
     
-    const [relRes, antRes] = await Promise.all([
-      fetch(relUrl),
-      fetch(antUrl)
+    const [relRes, antRes, mlRes] = await Promise.all([
+      fetch(relUrl).catch(() => null),
+      fetch(antUrl).catch(() => null),
+      fetch(mlUrl).catch(() => null)
     ]);
     
-    if (relRes.ok) {
+    if (relRes && relRes.ok) {
       const relData = await relRes.json();
       synonyms = relData.map(w => w.word);
     }
     
+    if (mlRes && mlRes.ok) {
+      const mlData = await mlRes.json();
+      mlData.forEach(w => {
+        if (!synonyms.includes(w.word) && w.word !== cleanWord) {
+          synonyms.push(w.word);
+        }
+      });
+    }
+    
+    // Fallback: if we still have very few synonyms (e.g. less than 5), query rel_trg (trigger words)
     if (synonyms.length < 5) {
-      const mlRes = await fetch(mlUrl);
-      if (mlRes.ok) {
-        const mlData = await mlRes.json();
-        mlData.forEach(w => {
+      const trgRes = await fetch(trgUrl).catch(() => null);
+      if (trgRes && trgRes.ok) {
+        const trgData = await trgRes.json();
+        trgData.forEach(w => {
           if (!synonyms.includes(w.word) && w.word !== cleanWord) {
             synonyms.push(w.word);
           }
@@ -1376,7 +1512,7 @@ function openReviewModal() {
   document.getElementById('review-author').value = '';
   document.getElementById('review-title').value = '';
   document.getElementById('review-comment').value = '';
-  setStarInputRating(5);
+  setStarInputRating(0); // Reset stars to 0 on open (rating is required)
   audio.playClick();
 }
 
@@ -1402,8 +1538,15 @@ function submitReview() {
   const title = document.getElementById('review-title').value.trim() || 'No Title';
   const comment = document.getElementById('review-comment').value.trim();
   
+  if (state.selectedReviewRating === 0) {
+    alert("Please select a star rating (1-5) for your review!");
+    audio.playError();
+    return;
+  }
+  
   if (!comment) {
     alert("Please write your review comment!");
+    audio.playError();
     return;
   }
   
@@ -1460,6 +1603,91 @@ function sendDirectEmail(reviewObj = null) {
   const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   
   window.open(mailtoUrl, '_blank');
+}
+
+// --- Language Check & Auto History Helpers ---
+function checkLanguageWarning(text) {
+  const words = text.toLowerCase().split(/\s+/).map(w => w.replace(/[^\w]/g, ''));
+  const foreignStopWords = new Set([
+    // French
+    'les', 'pour', 'dans', 'une', 'des', 'est', 'cette', 'avec', 'vous', 'nous',
+    // German
+    'der', 'die', 'das', 'und', 'ist', 'den', 'von', 'mit', 'auf', 'nicht',
+    // Spanish
+    'para', 'con', 'del', 'los', 'por', 'como', 'pero', 'este', 'esta'
+  ]);
+  
+  let hasForeign = false;
+  for (const w of words) {
+    if (foreignStopWords.has(w)) {
+      hasForeign = true;
+      break;
+    }
+  }
+  
+  const banner = document.getElementById('lang-warning-banner');
+  if (banner) {
+    banner.style.display = hasForeign ? 'flex' : 'none';
+  }
+}
+
+function pushAutoHistory(text) {
+  if (state.autoHistoryIndex < state.autoHistory.length - 1) {
+    state.autoHistory = state.autoHistory.slice(0, state.autoHistoryIndex + 1);
+  }
+  if (state.autoHistory.length > 0 && state.autoHistory[state.autoHistory.length - 1] === text) {
+    return;
+  }
+  state.autoHistory.push(text);
+  if (state.autoHistory.length > 50) {
+    state.autoHistory.shift();
+  }
+  state.autoHistoryIndex = state.autoHistory.length - 1;
+  updateAutoUndoRedoButtons();
+}
+
+function triggerAutoUndo() {
+  if (state.autoHistoryIndex > 0) {
+    state.autoHistoryIndex--;
+    const text = state.autoHistory[state.autoHistoryIndex];
+    document.getElementById('editor-output').value = text;
+    updateAutoUndoRedoButtons();
+    
+    if (state.showDiff) {
+      const input = document.getElementById('editor-input').value;
+      document.getElementById('editor-output-diff').innerHTML = computeDiffHTML(input, text);
+    }
+    
+    runBypassAnalysis(text);
+    audio.playClick();
+  }
+}
+
+function triggerAutoRedo() {
+  if (state.autoHistoryIndex < state.autoHistory.length - 1) {
+    state.autoHistoryIndex++;
+    const text = state.autoHistory[state.autoHistoryIndex];
+    document.getElementById('editor-output').value = text;
+    updateAutoUndoRedoButtons();
+    
+    if (state.showDiff) {
+      const input = document.getElementById('editor-input').value;
+      document.getElementById('editor-output-diff').innerHTML = computeDiffHTML(input, text);
+    }
+    
+    runBypassAnalysis(text);
+    audio.playClick();
+  }
+}
+
+function updateAutoUndoRedoButtons() {
+  const undoBtn = document.getElementById('btn-auto-undo');
+  const redoBtn = document.getElementById('btn-auto-redo');
+  
+  if (undoBtn && redoBtn) {
+    undoBtn.disabled = state.autoHistoryIndex <= 0;
+    redoBtn.disabled = state.autoHistoryIndex >= state.autoHistory.length - 1;
+  }
 }
 
 // --- Browser Chrome Extension Receiver ---

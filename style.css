@@ -1325,6 +1325,9 @@ body.theme-light .craft-type-tabs {
   color: var(--text-muted);
   line-height: 1.4;
   white-space: pre-wrap;
+  max-height: 80px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .review-card-date {
@@ -1466,6 +1469,35 @@ body.theme-light .craft-type-tabs {
     font-size: 0.9rem !important;
     box-shadow: 0 4px 20px rgba(155, 81, 224, 0.4), 0 0 10px rgba(0, 240, 255, 0.2);
   }
+  .synonym-dropdown-popup {
+    max-width: 90vw;
+    font-size: 0.8rem;
+  }
+}
+
+/* Language warning banner */
+.lang-warning-banner {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 165, 2, 0.15);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255, 165, 2, 0.3);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: #ffa502;
+  font-weight: 600;
+  z-index: 10;
+  animation: slideUp var(--transition-normal);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 
 
