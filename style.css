@@ -164,30 +164,28 @@ body.theme-light ::-webkit-scrollbar-thumb:hover {
   letter-spacing: -0.5px;
 }
 
-.logo-tooltip-container {
+.icon-tooltip-container {
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .logo-tooltip {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
   position: absolute;
   top: 100%;
-  left: 36px;
+  left: 50%;
   margin-top: 12px;
   background: rgba(15, 23, 42, 0.95);
   backdrop-filter: blur(8px);
   border: 1px solid var(--border-color);
-  padding: 6px 12px;
+  padding: 4px 6px;
   border-radius: var(--radius-sm);
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #ffffff;
-  white-space: nowrap;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-5px);
+  transform: translateX(-50%) translateY(-5px);
   transition: all var(--transition-fast);
   pointer-events: none;
   box-shadow: var(--shadow-md);
@@ -198,16 +196,17 @@ body.theme-light ::-webkit-scrollbar-thumb:hover {
   content: '';
   position: absolute;
   bottom: 100%;
-  left: 14px;
+  left: 50%;
+  transform: translateX(-50%);
   border-width: 5px;
   border-style: solid;
   border-color: transparent transparent rgba(15, 23, 42, 0.95) transparent;
 }
 
-.logo-tooltip-container:hover .logo-tooltip {
+.icon-tooltip-container:hover .logo-tooltip {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translateX(-50%) translateY(0);
 }
 
 .flag-trinidad {
