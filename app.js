@@ -47,6 +47,62 @@ const state = {
 };
 window.state = state;
 
+// --- Chrome Extension CORS Proxy Bridge ---
+const bridgeRequests = new Map();
+let bridgeRequestIdCounter = 0;
+
+function fetchViaBridge(url, options = {}) {
+  return new Promise((resolve, reject) => {
+    const requestId = ++bridgeRequestIdCounter;
+    bridgeRequests.set(requestId, { resolve, reject });
+    
+    window.postMessage({
+      type: "WORD_CRAFT_API_REQUEST_BRIDGE",
+      requestId,
+      url,
+      method: options.method || 'POST',
+      headers: options.headers || {},
+      body: options.body || null
+    }, "*");
+  });
+}
+
+window.addEventListener("message", (event) => {
+  if (event.source !== window || !event.data) return;
+  
+  if (event.data.type === "WORD_CRAFT_API_RESPONSE_BRIDGE") {
+    const { requestId, response } = event.data;
+    const req = bridgeRequests.get(requestId);
+    if (req) {
+      bridgeRequests.delete(requestId);
+      if (response.success) {
+        const mockResponse = {
+          ok: response.ok,
+          status: response.status,
+          json: async () => response.data,
+          text: async () => JSON.stringify(response.data)
+        };
+        req.resolve(mockResponse);
+      } else {
+        req.reject(new Error(response.error || `HTTP error ${response.status}`));
+      }
+    }
+  }
+});
+
+async function secureFetch(url, options = {}) {
+  const isExtensionContext = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
+  const isExtensionInstalled = document.documentElement.hasAttribute('data-word-craft-extension-installed');
+  
+  if (isExtensionContext) {
+    return fetch(url, options);
+  } else if (isExtensionInstalled) {
+    return fetchViaBridge(url, options);
+  } else {
+    return fetch(url, options);
+  }
+}
+
 // --- Initialization ---
 window.addEventListener('DOMContentLoaded', () => {
   // Load data from LocalStorage
@@ -994,7 +1050,7 @@ async function craftText() {
     
     if (state.apiProvider === 'gemini') {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${state.geminiModel}:generateContent?key=${state.apiKey}`;
-      const response = await fetch(url, {
+      const response = await secureFetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -1023,7 +1079,7 @@ async function craftText() {
         ? "https://openrouter.ai/api/v1/chat/completions"
         : "https://integrate.api.nvidia.com/v1/chat/completions";
         
-      const response = await fetch(url, {
+      const response = await secureFetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1082,7 +1138,15 @@ async function craftText() {
 
   } catch (error) {
     audio.playError();
-    outputArea.value = `[Crafting Failed] Error: ${error.message}\n\nPlease check your API key, connection, or model configurations in Settings.`;
+    let errorMsg = `[Crafting Failed] Error: ${error.message}`;
+    const isExtensionContext = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
+    const isExtensionInstalled = document.documentElement.hasAttribute('data-word-craft-extension-installed');
+    if (state.apiProvider === 'nvidia' && !isExtensionContext && !isExtensionInstalled) {
+      errorMsg += `\n\nTIP: The default NVIDIA NIM API requires CORS access. Please install the Word Craft Chrome Extension (load the project root folder in chrome://extensions) and run the app from there, or use a Gemini/OpenRouter API key in Settings.`;
+    } else {
+      errorMsg += `\n\nPlease check your API key, connection, or model configurations in Settings.`;
+    }
+    outputArea.value = errorMsg;
   } finally {
     craftBtn.disabled = false;
     craftBtnText.textContent = "CRAFT TEXT";
@@ -2732,7 +2796,7 @@ async function requestAiContent(systemInstruction, promptText) {
   
   if (state.apiProvider === 'gemini') {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${state.geminiModel}:generateContent?key=${state.apiKey}`;
-    const response = await fetch(url, {
+    const response = await secureFetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -2761,7 +2825,7 @@ async function requestAiContent(systemInstruction, promptText) {
       ? "https://openrouter.ai/api/v1/chat/completions"
       : "https://integrate.api.nvidia.com/v1/chat/completions";
       
-    const response = await fetch(url, {
+    const response = await secureFetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -2868,10 +2932,16 @@ Do not output any introductory or concluding text, explanations, or markdown. On
     
   } catch (error) {
     if (listDiv) {
+      let errorMsg = error.message;
+      const isExtensionContext = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
+      const isExtensionInstalled = document.documentElement.hasAttribute('data-word-craft-extension-installed');
+      if (state.apiProvider === 'nvidia' && !isExtensionContext && !isExtensionInstalled) {
+        errorMsg += `<br><br><strong>TIP:</strong> The default NVIDIA NIM API requires CORS access. Please install the Word Craft Chrome Extension (load the project root folder in chrome://extensions) and run the app from there, or use a Gemini/OpenRouter API key in Settings.`;
+      }
       listDiv.innerHTML = `
         <div class="placeholder-word-text centered" style="color: var(--danger); padding: 20px;">
           <strong>Paraphrase failed</strong>
-          <div style="font-size: 0.8rem; margin-top: 4px;">${error.message}</div>
+          <div style="font-size: 0.8rem; margin-top: 4px; line-height: 1.4;">${errorMsg}</div>
         </div>
       `;
     }
