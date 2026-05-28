@@ -1142,7 +1142,7 @@ async function craftText() {
     const isExtensionContext = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
     const isExtensionInstalled = document.documentElement.hasAttribute('data-word-craft-extension-installed');
     if (state.apiProvider === 'nvidia' && !isExtensionContext && !isExtensionInstalled) {
-      errorMsg += `\n\nTIP: The default NVIDIA NIM API requires CORS access. Please install the Word Craft Chrome Extension (load the project root folder in chrome://extensions) and run the app from there, or use a Gemini/OpenRouter API key in Settings.`;
+      errorMsg += `\n\nTIP: The default API requires CORS access. Please install the Word Craft extension. You can check here for assistance: https://docs.api.nvidia.com/cloud-functions/reference/getfunctiondeployment`;
     } else {
       errorMsg += `\n\nPlease check your API key, connection, or model configurations in Settings.`;
     }
@@ -2936,7 +2936,7 @@ Do not output any introductory or concluding text, explanations, or markdown. On
       const isExtensionContext = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
       const isExtensionInstalled = document.documentElement.hasAttribute('data-word-craft-extension-installed');
       if (state.apiProvider === 'nvidia' && !isExtensionContext && !isExtensionInstalled) {
-        errorMsg += `<br><br><strong>TIP:</strong> The default NVIDIA NIM API requires CORS access. Please install the Word Craft Chrome Extension (load the project root folder in chrome://extensions) and run the app from there, or use a Gemini/OpenRouter API key in Settings.`;
+        errorMsg += `<br><br><strong>TIP:</strong> The default API requires CORS access. Please install the Word Craft extension. You can check here for assistance: <a href="https://docs.api.nvidia.com/cloud-functions/reference/getfunctiondeployment" target="_blank" style="color: var(--cyan); text-decoration: underline;">https://docs.api.nvidia.com/cloud-functions/reference/getfunctiondeployment</a>`;
       }
       listDiv.innerHTML = `
         <div class="placeholder-word-text centered" style="color: var(--danger); padding: 20px;">
