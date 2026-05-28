@@ -441,14 +441,14 @@
       // Restore original method
       navigator.clipboard.write = originalClipboardWrite;
       
-      // Check exportRichDoc method doesn't throw errors
-      let downloadTriggered = false;
+      // Check exportRichDoc and exportCraftedText methods don't throw errors
+      let downloadTriggered = 0;
       const originalAppendChild = document.body.appendChild;
       const originalRemoveChild = document.body.removeChild;
       
       document.body.appendChild = (el) => {
-        if (el.tagName === 'A' && el.download.endsWith('.html')) {
-          downloadTriggered = true;
+        if (el.tagName === 'A' && (el.download.endsWith('.html') || el.download.endsWith('.txt'))) {
+          downloadTriggered++;
         }
         return originalAppendChild.call(document.body, el);
       };
@@ -458,14 +458,16 @@
       };
       
       exportRichDoc();
-      await delay(500);
+      await delay(300);
+      exportCraftedText();
+      await delay(300);
       
       // Restore original body overrides
       document.body.appendChild = originalAppendChild;
       document.body.removeChild = originalRemoveChild;
       
-      if (!downloadTriggered) {
-        throw new Error("HTML Document exporter failed to trigger download element");
+      if (downloadTriggered < 2) {
+        throw new Error("HTML Document exporter or Plain Text exporter failed to trigger download element");
       }
       
       setStepState('export', 'passed', 'HTML export templates verified');

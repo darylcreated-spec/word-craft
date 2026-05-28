@@ -667,7 +667,7 @@ function copyCraftedText() {
 }
 
 function exportCraftedText() {
-  const text = document.getElementById('editor-output').value;
+  const text = getActiveOutputText();
   if (!text) return;
   
   const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
