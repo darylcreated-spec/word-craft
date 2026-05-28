@@ -735,8 +735,11 @@ body.theme-light .craft-type-tabs {
 .pane-action-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 6px 12px;
+  height: 28px;
+  padding: 0 12px;
+  box-sizing: border-box;
   border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border-color);
@@ -746,6 +749,12 @@ body.theme-light .craft-type-tabs {
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
+}
+
+/* Icon-only action buttons */
+.pane-action-btn:not(:has(span)):not(:has(text)):has(svg) {
+  width: 28px;
+  padding: 0;
 }
 
 .pane-action-btn:hover {
@@ -1527,9 +1536,9 @@ body.theme-light .craft-type-tabs {
 
 /* Square craft button styles */
 .craft-master-btn.square-btn {
-  border-radius: 0px !important;
-  padding: 6px 12px !important;
-  font-size: 0.78rem !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 0 12px !important;
+  font-size: 0.75rem !important;
   height: 28px !important;
   line-height: 1 !important;
   box-shadow: none !important;
@@ -1537,6 +1546,7 @@ body.theme-light .craft-type-tabs {
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
   display: flex !important;
   align-items: center !important;
+  justify-content: center !important;
   gap: 6px !important;
   margin: 0 !important;
 }
@@ -1638,12 +1648,15 @@ body.theme-win11 .mode-select-btn.active {
   border-color: #60cdff;
 }
 
-body.theme-win11 .pane-action-btn, body.theme-win11 .modal-btn {
+body.theme-win11 .pane-action-btn, 
+body.theme-win11 .modal-btn,
+body.theme-win11 .control-btn,
+body.theme-win11 .theme-select {
   border-radius: 4px;
 }
 
 body.theme-win11 .craft-master-btn.square-btn {
-  border-radius: 0px !important;
+  border-radius: 4px !important;
   background: #0078d4 !important;
 }
 
