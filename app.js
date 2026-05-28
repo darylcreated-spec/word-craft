@@ -961,7 +961,7 @@ async function craftText() {
         2. Adjust the tone to: ${toneText}.
         3. Humanize directives: ${humanizeDirectives}
         4. ABSOLUTELY AVOID THESE CLICHÉ WORDS: delve, testament, furthermore, moreover, tapestry, beacon, intricate, notably, pinnacle, in conclusion, it is important to note, crucial role.
-        5. Preserve and carry over all emoji characters present in the original text. Do not strip them.
+        5. ABSOLUTELY DO NOT include any emoji characters in your response. Strip all emojis from the output.
         6. Output ONLY the rewritten text, with no introduction, explanation, or markdown wrappers unless necessary for document layout.
         ${extraDirectives}
       `;
@@ -972,7 +972,7 @@ async function craftText() {
         You are Word Craft, a meticulous editor.
         Fix all grammatical, spelling, punctuation, and typographical errors in the text.
         Enhance readability and vocabulary where appropriate to match a ${toneText} tone, but preserve the author's original voice, style, and sentence configurations as much as possible.
-        Preserve and carry over all emoji characters present in the original text. Do not strip them.
+        ABSOLUTELY DO NOT include any emoji characters in your response. Strip all emojis from the output.
         Output ONLY the corrected text, with no introduction or explanation.
         ${extraDirectives}
       `;
@@ -983,7 +983,7 @@ async function craftText() {
         You are Word Craft, a master paraphraser.
         Completely restate and rewrite the user's text. Shift the sentence structures, use creative synonyms, and alter the sentence ordering if it improves flow.
         Maintain a ${toneText} tone. Ensure the core argument and original details are preserved.
-        Preserve and carry over all emoji characters present in the original text. Do not strip them.
+        ABSOLUTELY DO NOT include any emoji characters in your response. Strip all emojis from the output.
         Output ONLY the paraphrased text, with no introduction or explanation.
         ${extraDirectives}
       `;
@@ -1051,6 +1051,9 @@ async function craftText() {
         cleanText = cleanText.replace(/^```[a-zA-Z]*\n/, '').replace(/\n```$/, '');
       }
     }
+
+    // Strip all emoji characters from output response
+    cleanText = cleanText.replace(/\p{Extended_Pictographic}/gu, '');
 
     outputArea.value = cleanText;
     
@@ -1880,7 +1883,16 @@ function renderReviews() {
   container.innerHTML = '';
   
   if (state.reviewsList.length === 0) {
-    container.innerHTML = '<div class="placeholder-word-text centered">No reviews yet. Be the first to leave a comment!</div>';
+    container.innerHTML = `
+      <div class="placeholder-word-text centered" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 40px 20px;">
+        <span style="font-size: 2.5rem; filter: grayscale(0.3); opacity: 0.85;">★</span>
+        <div style="font-size: 0.95rem; font-weight: 500; color: var(--text-muted);">No reviews yet. Be the first to leave a comment!</div>
+        <button class="pane-action-btn" onclick="openReviewModal()" style="height: 32px; padding: 0 16px; font-size: 0.8rem; background: rgba(255, 255, 255, 0.04); display: inline-flex; align-items: center; gap: 6px;">
+          <span style="color: var(--primary); font-size: 0.9rem;">★</span>
+          <strong>Write a Review</strong>
+        </button>
+      </div>
+    `;
     return;
   }
   
@@ -2811,7 +2823,7 @@ Output format:
 Option 1: [first paraphrase]
 Option 2: [second paraphrase]
 Option 3: [third paraphrase]
-Do not output any introductory or concluding text, explanations, or markdown. Only output the options.`;
+Do not output any introductory or concluding text, explanations, or markdown. Only output the options. Absolutely do not include any emojis in the response.`;
 
     const promptText = `Please paraphrase this sentence:\n\n${sentenceText}`;
     const responseText = await requestAiContent(systemInstruction, promptText);
@@ -2826,6 +2838,7 @@ Do not output any introductory or concluding text, explanations, or markdown. On
         .replace(/^\[OPT\]\s*/i, '')
         .trim();
       cleanLine = cleanLine.replace(/^["']|["']$/g, '').trim();
+      cleanLine = cleanLine.replace(/\p{Extended_Pictographic}/gu, '');
       if (cleanLine) {
         options.push(cleanLine);
       }
