@@ -566,5 +566,12 @@
   <script src="sound.js?v=1.5.0"></script>
   <script src="docx-reader.js?v=1.5.0"></script>
   <script src="app.js?v=1.5.0"></script>
+  <script>
+    if (window.location.search.includes('test=true')) {
+      const script = document.createElement('script');
+      script.src = 'tests.js?v=' + Date.now();
+      document.body.appendChild(script);
+    }
+  </script>
 </body>
 </html>
