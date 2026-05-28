@@ -267,14 +267,15 @@ body.theme-light .craft-type-tabs {
 
 .craft-tab-btn {
   flex: 1;
-  padding: 8px 2px;
+  padding: 8px 4px;
   border: none;
   background: transparent;
   color: var(--text-muted);
   font-family: var(--font-sans);
   font-weight: 700;
-  font-size: 0.68rem;
-  letter-spacing: -0.3px;
+  font-size: 0.78rem;
+  letter-spacing: -0.2px;
+  text-transform: uppercase;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition-fast);
