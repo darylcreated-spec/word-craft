@@ -297,7 +297,7 @@
               <div class="pane-actions" title="Actions menu for input text">
                 <label class="pane-action-btn" title="Upload and import text from Word (.docx), PDF (.pdf), or text (.txt) files">
                   <svg viewBox="0 0 24 24" width="16" height="16"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" fill="currentColor"/></svg>
-                  Import File
+                  Import
                 </label>
                 <input type="file" id="docx-upload" accept=".docx,.txt,.pdf" style="display:none;" onchange="handleFileUpload(event)">
                 <button class="pane-action-btn text-danger" title="Clear all text in the original input field" onclick="clearEditorInput()">Clear</button>
@@ -337,10 +337,10 @@
                 <button class="pane-action-btn" id="btn-auto-redo" onclick="triggerAutoRedo()" disabled title="Redo AI craft (forward to newer result version)">
                   <svg viewBox="0 0 24 24" width="16" height="16"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.7 0-8.58 3.03-9.96 7.22l2.37.78c1.05-3.19 4.06-5.5 7.59-5.5 1.96 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z" fill="currentColor"/></svg>
                 </button>
-                <button class="pane-action-btn" id="btn-toggle-heatmap" onclick="toggleHeatmapView()" title="Scan text for AI likelihood and highlight sentences (red = AI, green = human)">Scan for AI</button>
-                <button class="pane-action-btn" id="btn-toggle-diff" onclick="toggleDiffView()" title="Compare original and crafted text with red and green word highlights">Show Changes</button>
-                <button class="pane-action-btn" onclick="copyCraftedText()" title="Copy crafted output as plain text to clipboard">Copy Text</button>
-                <button class="pane-action-btn" onclick="exportCraftedText()" title="Export output text as a .txt file">Export .txt</button>
+                <button class="pane-action-btn" id="btn-toggle-heatmap" onclick="toggleHeatmapView()" title="Scan text for AI likelihood and highlight sentences (red = AI, green = human)">Scan</button>
+                <button class="pane-action-btn" id="btn-toggle-diff" onclick="toggleDiffView()" title="Compare original and crafted text with red and green word highlights">Changes</button>
+                <button class="pane-action-btn" onclick="copyCraftedText()" title="Copy crafted output as plain text to clipboard">Copy</button>
+                <button class="pane-action-btn" onclick="exportCraftedText()" title="Export output text as a .txt file">Export</button>
                 <button class="pane-action-btn text-danger" onclick="clearCraftedOutput()" title="Clear output text">Clear</button>
               </div>
               
@@ -352,9 +352,9 @@
                 <button class="pane-action-btn" id="btn-manual-redo" onclick="triggerManualRedo()" disabled title="Redo replacement (manual synonyms history)">
                   <svg viewBox="0 0 24 24" width="16" height="16"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.7 0-8.58 3.03-9.96 7.22l2.37.78c1.05-3.19 4.06-5.5 7.59-5.5 1.96 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z" fill="currentColor"/></svg>
                 </button>
-                <button class="pane-action-btn" onclick="syncManualToInput()" title="Sync manual text modifications back to the original input editor pane">Apply edits to original</button>
-                <button class="pane-action-btn" onclick="copyManualText()" title="Copy manual mode crafted text as plain text to clipboard">Copy Text</button>
-                <button class="pane-action-btn" onclick="exportCraftedText()" title="Export manual mode text as a .txt file">Export .txt</button>
+                <button class="pane-action-btn" onclick="syncManualToInput()" title="Sync manual text modifications back to the original input editor pane">Apply Edits</button>
+                <button class="pane-action-btn" onclick="copyManualText()" title="Copy manual mode crafted text as plain text to clipboard">Copy</button>
+                <button class="pane-action-btn" onclick="exportCraftedText()" title="Export manual mode text as a .txt file">Export</button>
                 <button class="pane-action-btn text-danger" onclick="clearCraftedOutput()" title="Clear manual mode output text">Clear</button>
               </div>
             </div>
@@ -367,7 +367,7 @@
               <!-- 4. Interactive sentence-level AI Heat Map scan view -->
               <div id="editor-output-heatmap" class="heatmap-container" style="display:none;" title="AI Heat Map: Hover over sentences to see AI probability; click to rewrite.">
                 <div class="placeholder-word-text centered">
-                  Craft some text or type inside the editor and click "Scan for AI" to show the sentence heat map.
+                  Craft some text or type inside the editor and click "Scan" to show the sentence heat map.
                 </div>
               </div>
               

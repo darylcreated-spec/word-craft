@@ -811,7 +811,7 @@ function toggleDiffView() {
   const diffBox = document.getElementById('editor-output-diff');
   
   if (state.showDiff) {
-    btn.textContent = "Show Plain Text";
+    btn.textContent = "Plain Text";
     txtArea.style.display = 'none';
     diffBox.style.display = 'block';
     
@@ -820,7 +820,7 @@ function toggleDiffView() {
     const diffHTML = computeDiffHTML(original, crafted);
     diffBox.innerHTML = diffHTML;
   } else {
-    btn.textContent = "Show Changes";
+    btn.textContent = "Changes";
     txtArea.style.display = 'block';
     diffBox.style.display = 'none';
   }
@@ -2307,7 +2307,7 @@ function loadProject(id) {
   updateAutoUndoRedoButtons();
   
   const toggleDiffBtn = document.getElementById('btn-toggle-diff');
-  if (toggleDiffBtn) toggleDiffBtn.textContent = 'Show Changes';
+  if (toggleDiffBtn) toggleDiffBtn.textContent = 'Changes';
   
   const autoOutput = document.getElementById('editor-output');
   if (autoOutput && state.craftType !== 'manual') autoOutput.style.display = 'block';
@@ -2584,7 +2584,7 @@ function toggleHeatmapView() {
   const manualBox = document.getElementById('editor-output-manual');
   
   if (state.showHeatmap) {
-    if (btn) btn.textContent = "Hide AI Scan";
+    if (btn) btn.textContent = "Hide Scan";
     if (txtArea) txtArea.style.display = 'none';
     if (diffBox) diffBox.style.display = 'none';
     if (manualBox) manualBox.style.display = 'none';
@@ -2593,7 +2593,7 @@ function toggleHeatmapView() {
     renderHeatmap();
     audio.playClick();
   } else {
-    if (btn) btn.textContent = "Scan for AI";
+    if (btn) btn.textContent = "Scan";
     if (heatmapBox) heatmapBox.style.display = 'none';
     
     if (state.craftType === 'manual') {
