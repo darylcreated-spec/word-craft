@@ -13,14 +13,14 @@
   <!-- CSS Stylesheet with Cache Busting -->
   <link rel="stylesheet" href="style.css?v=1.5.0">
 </head>
-<body class="theme-dark">
+<body class="theme-win11">
 
   <!-- App Wrapper -->
   <div id="app-container">
     
     <!-- Top Navigation Header -->
     <header class="app-header">
-      <div class="header-logo">
+      <div class="header-logo" title="Word Craft — AI Paraphraser, Humanizer & Editor">
         <button class="control-btn" id="btn-toggle-sidebar" title="Toggle Controls" onclick="toggleMobileSidebar()" style="display: none; margin-right: 8px;">
           <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor"/></svg>
         </button>
@@ -29,24 +29,24 @@
       </div>
       
       <!-- App Title Label -->
-      <div class="header-title" id="app-title-label">AI Paraphraser & Humanizer</div>
+      <div class="header-title" id="app-title-label" title="Active application module name">AI Paraphraser & Humanizer</div>
       
-      <!-- Utility Controls -->
+            <!-- Utility Controls -->
       <div class="header-controls">
-        <button class="control-btn" id="btn-mute" title="Toggle Sound" onclick="toggleMute()">
+        <button class="control-btn" id="btn-mute" title="Toggle sound effects" onclick="toggleMute()">
           <svg id="svg-unmuted" viewBox="0 0 24 24" width="20" height="20"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" fill="currentColor"/></svg>
           <svg id="svg-muted" viewBox="0 0 24 24" width="20" height="20" style="display:none;"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.21.05-.42.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z" fill="currentColor"/></svg>
         </button>
-        <div class="theme-selector-container">
+        <div class="theme-selector-container" title="Select color theme: Dark, Light, or Windows 11 Acrylic">
           <span class="theme-label">Theme:</span>
           <select id="theme-select" class="theme-select" onchange="changeTheme()">
             <option value="theme-dark">Dark</option>
             <option value="theme-light">Light</option>
-            <option value="theme-win11">Win 11</option>
+            <option value="theme-win11" selected>Win 11</option>
           </select>
         </div>
-        <button class="control-btn accent-glow" id="btn-settings" title="API Settings" onclick="openSettings()">
-          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" fill="currentColor"/></svg>
+        <button class="control-btn accent-glow" id="btn-settings" title="Configure settings and API keys" onclick="openSettings()">
+          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38(1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" fill="currentColor"/></svg>
         </button>
       </div>
     </header>
@@ -61,45 +61,48 @@
       <section id="workspace-editor" class="workspace-section active">
         
         <!-- Editor Left Options Panel -->
-        <aside class="editor-options-panel">
+        <aside class="editor-options-panel" title="Configuration Panel: Customize your crafting preferences">
           
           <!-- Craft Mode Switcher: AI vs Manual -->
-          <div class="craft-type-tabs">
-            <button class="craft-tab-btn active" id="btn-tab-auto" onclick="switchCraftType('auto')">
+          <div class="craft-type-tabs" title="Switch editor modes">
+            <button class="craft-tab-btn active" id="btn-tab-auto" title="AI Auto-Craft: Automatically rewrite text using custom AI instructions" onclick="switchCraftType('auto')">
               AI Auto-Craft
             </button>
-            <button class="craft-tab-btn" id="btn-tab-manual" onclick="switchCraftType('manual')">
+            <button class="craft-tab-btn" id="btn-tab-manual" title="Manual Craft: Analyze text parts of speech and swap synonyms word-by-word" onclick="switchCraftType('manual')">
               Manual Craft
             </button>
-            <button class="craft-tab-btn" id="btn-tab-reviews" onclick="switchCraftType('reviews')">
-              Reviews & Feedback
+            <button class="craft-tab-btn" id="btn-tab-reviews" title="Reviews & Feedback: See ratings and comments from the community" onclick="switchCraftType('reviews')">
+              Reviews
+            </button>
+            <button class="craft-tab-btn" id="btn-tab-projects" title="Projects & History: Manage your saved drafts and documents" onclick="switchCraftType('projects')">
+              Projects
             </button>
           </div>
 
           <!-- 1. AI Auto-Craft Controls -->
-          <div id="panel-auto-controls" class="panel-controls-group active">
-            <div class="panel-section">
+          <div id="panel-auto-controls" class="panel-controls-group active" title="AI mode settings">
+            <div class="panel-section" title="Select AI paraphrasing strategy">
               <h3 class="section-title">Crafting Mode</h3>
               <div class="mode-select-grid">
-                <button class="mode-select-btn active" id="btn-opt-humanize" onclick="setEditorMode('humanize')">
+                <button class="mode-select-btn active" id="btn-opt-humanize" title="Bypass AI: Restructure style using humanized sentence variations to clear AI check software" onclick="setEditorMode('humanize')">
                   <strong>Bypass AI Detector</strong>
                   <span>Humanize style to clear Turnitin</span>
                 </button>
-                <button class="mode-select-btn" id="btn-opt-grammar" onclick="setEditorMode('grammar')">
+                <button class="mode-select-btn" id="btn-opt-grammar" title="Fix Grammar: Correct grammar rules, clean spelling typos, and optimize general flow" onclick="setEditorMode('grammar')">
                   <strong>Fix Grammar & Spelling</strong>
                   <span>Clean writing with polished flow</span>
                 </button>
-                <button class="mode-select-btn" id="btn-opt-paraphrase" onclick="setEditorMode('paraphrase')">
+                <button class="mode-select-btn" id="btn-opt-paraphrase" title="Paraphrase: Rephrase and reword sentences for vocabulary variation while keeping base meanings" onclick="setEditorMode('paraphrase')">
                   <strong>Paraphrase</strong>
                   <span>Rewrite sentences and structure</span>
                 </button>
               </div>
             </div>
 
-            <div class="panel-section">
+            <div class="panel-section" title="Select target output tone style">
               <h3 class="section-title">Tone & Voice</h3>
-              <div class="tone-select-container">
-                <select id="editor-tone-select" class="styled-select">
+              <div class="tone-select-container" title="Select the target tone of your writing (Academic, Professional, Creative, or Casual)">
+                <select id="editor-tone-select" class="styled-select" title="Active tone selection">
                   <option value="academic">Academic & Critical</option>
                   <option value="professional" selected>Professional & Clear</option>
                   <option value="creative">Creative & Flowing</option>
@@ -108,10 +111,10 @@
               </div>
             </div>
 
-            <div class="panel-section" id="section-humanize-strength">
+            <div class="panel-section" id="section-humanize-strength" title="Configure deep humanization level">
               <h3 class="section-title">Humanize Strength</h3>
-              <div class="slider-container">
-                <input type="range" id="humanize-strength" min="1" max="3" value="2" step="1">
+              <div class="slider-container" title="Drag to adjust intensity of the humanization bypass algorithm">
+                <input type="range" id="humanize-strength" min="1" max="3" value="2" step="1" title="Humanize strength slider">
                 <div class="slider-labels">
                   <span>Standard</span>
                   <span>Balanced</span>
@@ -120,33 +123,33 @@
               </div>
             </div>
 
-            <div class="panel-section">
+            <div class="panel-section" title="Additional options for AI outputs">
               <h3 class="section-title">Craft Settings</h3>
-              <label class="toggle-control" style="font-size: 0.82rem; font-weight: 600;">
+              <label class="toggle-control" title="Check this to force the AI to keep bullet points, lists, numbered spacing, and indentations" style="font-size: 0.82rem; font-weight: 600;">
                 <input type="checkbox" id="chk-preserve-format" style="width: 15px; height: 15px; accent-color: var(--primary);">
                 <span class="control-label-text">Preserve Format (Lists & Bullets)</span>
               </label>
-              <label class="toggle-control" id="section-register-lock" style="font-size: 0.82rem; font-weight: 600;">
+              <label class="toggle-control" id="section-register-lock" title="Check this to lock the vocabulary register, preserving informal expressions like y'all or gonna" style="font-size: 0.82rem; font-weight: 600;">
                 <input type="checkbox" id="chk-register-lock" checked style="width: 15px; height: 15px; accent-color: var(--primary);">
                 <span class="control-label-text">Register Lock (Keep Slang/Style)</span>
               </label>
             </div>
 
             <!-- Realtime Turnitin Bypass Dials -->
-            <div class="panel-section">
+            <div class="panel-section" title="Realtime predictive likelihood to clear AI detector models">
               <h3 class="section-title">AI Bypass Analyzer</h3>
               <div class="stats-dials-grid">
-                <div class="dial-wrapper">
+                <div class="dial-wrapper" title="Perplexity: Measures complexity and richness of vocabulary choices">
                   <div class="dial-circle" id="dial-perplexity">0%</div>
                   <div class="dial-label" title="Measures richness of vocabulary">Perplexity</div>
                 </div>
-                <div class="dial-wrapper">
+                <div class="dial-wrapper" title="Burstiness: Measures variance in sentence length and pattern structures">
                   <div class="dial-circle" id="dial-burstiness">0%</div>
                   <div class="dial-label" title="Measures sentence length variations">Burstiness</div>
                 </div>
               </div>
               
-              <div class="ai-score-banner green" id="ai-score-banner">
+              <div class="ai-score-banner green" id="ai-score-banner" title="Estimated probability that this draft was written by a human">
                 <div class="score-percentage" id="human-score-pct">99%</div>
                 <div class="score-text">
                   <strong id="human-score-status">High Human Probability</strong>
@@ -157,17 +160,17 @@
           </div>
 
           <!-- 2. Manual Word Craft Controls -->
-          <div id="panel-manual-controls" class="panel-controls-group">
-            <div class="panel-section">
+          <div id="panel-manual-controls" class="panel-controls-group" title="Manual word craft settings">
+            <div class="panel-section" title="Configure grammar type highlights for manual editing">
               <h3 class="section-title">Sentence Mechanics</h3>
               
               <!-- POS Toggle Switches -->
-              <label class="toggle-control">
+              <label class="toggle-control" title="Enable or disable color-coded highlights on words in the manual editing workspace">
                 <input type="checkbox" id="chk-highlight-pos" checked onchange="togglePOSHighlight()">
                 <span class="control-label-text">Highlight Grammar Types</span>
               </label>
 
-              <div class="pos-legend">
+              <div class="pos-legend" title="Legend of word category colors used to underline text in manual mode">
                 <div class="legend-item"><span class="legend-dot pos-noun"></span> Nouns</div>
                 <div class="legend-item"><span class="legend-dot pos-verb"></span> Verbs</div>
                 <div class="legend-item"><span class="legend-dot pos-adj"></span> Adjectives</div>
@@ -184,22 +187,39 @@
             </div>
 
             <!-- Active Selected Word Info Panel -->
-            <div class="panel-section">
+            <div class="panel-section" title="Inspector for word definitions and alternative choices">
               <h3 class="section-title">Selected Word Craft</h3>
-              <div class="active-word-card" id="active-word-card">
+              
+              <div class="slider-container" title="Filter synonym suggestions by vocabulary complexity" style="margin-bottom: 8px;">
+                <label class="form-label" for="manual-synonym-richness" style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted);">Synonym Complexity</label>
+                <input type="range" id="manual-synonym-richness" min="1" max="3" value="2" step="1" onchange="onSynonymRichnessChange()">
+                <div class="slider-labels" style="font-size: 0.65rem;">
+                  <span>Common</span>
+                  <span>Balanced</span>
+                  <span>Rare / Creative</span>
+                </div>
+              </div>
+
+              <div class="active-word-card" id="active-word-card" title="Inspector pane displaying synonyms/antonyms for the word clicked in manual workspace">
                 <div class="placeholder-word-text">Click a word in the text on the right to select synonyms/antonyms and inspect grammar rules.</div>
                 <div class="active-word-details" style="display:none;">
-                  <div class="word-flex-header">
+                  <div class="word-flex-header" title="Grammar tag and token details">
                     <span class="active-word-name" id="selected-word-name">jumps</span>
                     <span class="active-word-tag" id="selected-word-tag">Verb</span>
                   </div>
-                  <div class="synonym-section">
+                  <div class="dictionary-section" title="Word definitions and usage examples" style="margin-top: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                    <div class="word-synonyms-title">Definition:</div>
+                    <div class="word-definition-text" id="selected-word-definition" style="font-size: 0.8rem; line-height: 1.4; color: var(--text-main); margin-top: 4px; max-height: 90px; overflow-y: auto;">
+                      Loading definition...
+                    </div>
+                  </div>
+                  <div class="synonym-section" title="Suggested synonyms for replacement">
                     <div class="word-synonyms-title">Synonyms:</div>
                     <div class="word-synonyms-list" id="selected-word-synonyms">
                       <!-- Synonyms dynamically populated -->
                     </div>
                   </div>
-                  <div class="antonym-section">
+                  <div class="antonym-section" title="Suggested antonyms (opposites)">
                     <div class="word-synonyms-title">Antonyms:</div>
                     <div class="word-synonyms-list" id="selected-word-antonyms">
                       <!-- Antonyms dynamically populated -->
@@ -211,34 +231,51 @@
           </div>
 
           <!-- 3. Reviews & Comments Panel -->
-          <div id="panel-reviews-controls" class="panel-controls-group">
-            <div class="panel-section">
+          <div id="panel-reviews-controls" class="panel-controls-group" title="Reviews & feedback module panel">
+            <div class="panel-section" title="Overall review stats summary">
               <h3 class="section-title">Community Reviews</h3>
-              <div class="rating-overview-card">
+              <div class="rating-overview-card" title="Word Craft average rating and count of submitted reviews">
                 <div class="rating-number" id="reviews-avg-score">4.9</div>
                 <div class="rating-stars" id="reviews-avg-stars">★★★★★</div>
                 <div class="rating-count" id="reviews-total-count">Based on 142 reviews</div>
               </div>
             </div>
 
-            <div class="panel-section">
+            <div class="panel-section" title="Contact the developer or share feedback">
               <h3 class="section-title">Submit Feedback</h3>
               <div style="display: flex; flex-direction: column; gap: 10px;">
-                <button class="mode-select-btn" onclick="openReviewModal()" style="width:100%; align-items:center; justify-content:center; padding: 12px; cursor: pointer; display: flex; flex-direction: row; gap: 6px;">
+                <button class="mode-select-btn" onclick="openReviewModal()" title="Submit a feedback form rating this tool and leaving comments" style="width:100%; align-items:center; justify-content:center; padding: 12px; cursor: pointer; display: flex; flex-direction: row; gap: 6px;">
                   <span style="font-size: 1.1rem; color: var(--primary);">★</span>
                   <strong>Write a Review</strong>
                 </button>
-                <button class="mode-select-btn" onclick="sendDirectEmail()" style="width:100%; align-items:center; justify-content:center; padding: 12px; border-color: var(--cyan); background: rgba(0, 240, 255, 0.03); cursor: pointer; display: flex; flex-direction: row; gap: 6px;">
+                <button class="mode-select-btn" onclick="sendDirectEmail()" title="Open your mail program to message the developer Daryl directly" style="width:100%; align-items:center; justify-content:center; padding: 12px; border-color: var(--cyan); background: rgba(0, 240, 255, 0.03); cursor: pointer; display: flex; flex-direction: row; gap: 6px;">
                   <span style="font-size: 1.1rem; color: var(--cyan);">✉</span>
                   <strong style="color: var(--cyan);">Email Daryl</strong>
                 </button>
               </div>
             </div>
 
-            <div class="panel-section" style="flex: 1; display: flex; flex-direction: column;">
+            <div class="panel-section" style="flex: 1; display: flex; flex-direction: column;" title="Read user comments">
               <h3 class="section-title">Recent Comments</h3>
-              <div class="reviews-list-container" id="reviews-list-container">
+              <div class="reviews-list-container" id="reviews-list-container" title="User ratings scroll list">
                 <!-- Reviews populated dynamically via JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Projects & History Panel -->
+          <div id="panel-projects-controls" class="panel-controls-group" title="Projects & History manager panel">
+            <div class="panel-section" title="Create a new blank document">
+              <button class="mode-select-btn" onclick="createNewProject()" style="width:100%; align-items:center; justify-content:center; padding: 12px; cursor: pointer; display: flex; flex-direction: row; gap: 6px; background: rgba(155, 81, 224, 0.05); border-color: var(--primary);">
+                <span style="font-size: 1.1rem; color: var(--primary);">➕</span>
+                <strong>New Document</strong>
+              </button>
+            </div>
+            
+            <div class="panel-section" style="flex: 1; display: flex; flex-direction: column;" title="List of saved drafts and documents">
+              <h3 class="section-title">Saved Documents</h3>
+              <div class="projects-list-container" id="projects-list-container" title="Scrollable list of drafts and files">
+                <!-- Projects populated dynamically via JS -->
               </div>
             </div>
           </div>
@@ -246,102 +283,112 @@
         </aside>
 
         <!-- Twin Editor Panes -->
-        <div class="twin-editors-container">
+        <div class="twin-editors-container" title="Twin editor panes separating original drafting panel from crafted output">
           
           <!-- Mobile-only editor pane switcher tabs -->
-          <div class="mobile-editor-tabs" id="mobile-editor-tabs" style="display: none;">
+          <div class="mobile-editor-tabs" id="mobile-editor-tabs" style="display: none;" title="Toggle input and output panels">
             <button class="mobile-editor-tab active" id="m-tab-input" onclick="switchMobileEditorPane('input')">Original Text</button>
             <button class="mobile-editor-tab" id="m-tab-output" onclick="switchMobileEditorPane('output')">Result</button>
           </div>
           
           <!-- Original Input Pane -->
-          <div class="editor-pane">
-            <div class="pane-header">
+          <div class="editor-pane" title="Original text panel: paste or load draft text here">
+            <div class="pane-header" title="Input controls header">
               <div style="display: flex; align-items: center; gap: 12px;">
                 <span class="pane-title">Original Text</span>
-                <button class="craft-master-btn square-btn" id="btn-craft-master" onclick="triggerMainAction()">
+                <button class="craft-master-btn square-btn" id="btn-craft-master" title="Process text: paraphrases, humanizes, or extracts grammar types depending on selected tab mode" onclick="triggerMainAction()">
                   <svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 2L2 22h20L12 2zm0 3.99L18.49 19H5.51L12 5.99z" fill="currentColor"/></svg>
                   <span id="craft-btn-text">CRAFT TEXT</span>
                 </button>
               </div>
-              <div class="pane-actions">
-                <label class="pane-action-btn" title="Upload MS Word (.docx), PDF (.pdf), or Text file">
+              <div class="pane-actions" title="Actions menu for input text">
+                <label class="pane-action-btn" title="Upload and import text from Word (.docx), PDF (.pdf), or text (.txt) files">
                   <svg viewBox="0 0 24 24" width="16" height="16"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" fill="currentColor"/></svg>
                   Import File
                 </label>
                 <input type="file" id="docx-upload" accept=".docx,.txt,.pdf" style="display:none;" onchange="handleFileUpload(event)">
-                <button class="pane-action-btn text-danger" onclick="clearEditorInput()">Clear</button>
+                <button class="pane-action-btn text-danger" title="Clear all text in the original input field" onclick="clearEditorInput()">Clear</button>
               </div>
             </div>
-            <div class="editor-body">
-              <textarea id="editor-input" placeholder="Paste your text, Google Doc paragraphs, or drag and drop a Microsoft Word (.docx), PDF (.pdf), or Text (.txt) file here to start crafting..." oninput="updateInputStats()"></textarea>
+            <div class="editor-body" title="Original text content editor box">
+              <textarea id="editor-input" title="Enter draft text to rephrase or analyze" placeholder="Paste your text, Google Doc paragraphs, or drag and drop a Microsoft Word (.docx), PDF (.pdf), or Text (.txt) file here to start crafting..." oninput="updateInputStats()"></textarea>
               <!-- Language Warning Banner -->
-              <div class="lang-warning-banner" id="lang-warning-banner" style="display: none;">
+              <div class="lang-warning-banner" id="lang-warning-banner" style="display: none;" title="Alert: text is parsed as a foreign language">
                 <span class="warning-icon">⚠️</span>
                 <span class="warning-message">Non-English input detected. AI paraphrasing may translate the text instead of rephrasing.</span>
               </div>
               <!-- Drag and drop dropzone overlay -->
-              <div class="drag-drop-overlay" id="drag-drop-overlay">
+              <div class="drag-drop-overlay" id="drag-drop-overlay" title="Drop file now to import text">
                 <div class="drag-drop-message">
                   <svg viewBox="0 0 24 24" width="48" height="48"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" fill="currentColor"/></svg>
                   Drop your .docx, .pdf, or .txt file here
                 </div>
               </div>
             </div>
-            <div class="pane-footer">
+            <div class="pane-footer" title="Input statistics summary">
               <span id="input-word-count">0 words</span>
               <span id="input-char-count">0 characters</span>
             </div>
           </div>
 
-
-
           <!-- Crafted Output Pane / Interactive Canvas -->
-          <div class="editor-pane">
-            <div class="pane-header">
+          <div class="editor-pane" title="Result output panel: view rewrites and compare drafts">
+            <div class="pane-header" title="Output actions header">
               <span class="pane-title" id="output-pane-title">Crafted Output</span>
               
               <!-- AI Mode header actions -->
-              <div class="pane-actions" id="pane-actions-auto">
-                <button class="pane-action-btn" id="btn-auto-undo" onclick="triggerAutoUndo()" disabled title="Undo last AI craft">
+              <div class="pane-actions" id="pane-actions-auto" title="AI mode toolbar actions">
+                <button class="pane-action-btn" id="btn-auto-undo" onclick="triggerAutoUndo()" disabled title="Undo last AI craft (revert back to previous result version)">
                   <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.2 8 12.5 8z" fill="currentColor"/></svg>
                 </button>
-                <button class="pane-action-btn" id="btn-auto-redo" onclick="triggerAutoRedo()" disabled title="Redo AI craft">
+                <button class="pane-action-btn" id="btn-auto-redo" onclick="triggerAutoRedo()" disabled title="Redo AI craft (forward to newer result version)">
                   <svg viewBox="0 0 24 24" width="16" height="16"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.7 0-8.58 3.03-9.96 7.22l2.37.78c1.05-3.19 4.06-5.5 7.59-5.5 1.96 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z" fill="currentColor"/></svg>
                 </button>
-                <button class="pane-action-btn" id="btn-toggle-diff" onclick="toggleDiffView()">Show Changes</button>
-                <button class="pane-action-btn" onclick="copyCraftedText()">Copy Text</button>
-                <button class="pane-action-btn" onclick="exportCraftedText()">Export .txt</button>
-                <button class="pane-action-btn text-danger" onclick="clearCraftedOutput()">Clear</button>
+                <button class="pane-action-btn" id="btn-toggle-heatmap" onclick="toggleHeatmapView()" title="Scan text for AI likelihood and highlight sentences (red = AI, green = human)">Scan for AI</button>
+                <button class="pane-action-btn" id="btn-toggle-diff" onclick="toggleDiffView()" title="Compare original and crafted text with red and green word highlights">Show Changes</button>
+                <button class="pane-action-btn" onclick="copyCraftedText()" title="Copy crafted output as plain text to clipboard">Copy Text</button>
+                <button class="pane-action-btn" onclick="copyRichText()" title="Copy crafted output as formatted rich text (keeps Lora font, line spacing, and margins)">Copy Rich</button>
+                <button class="pane-action-btn" onclick="exportCraftedText()" title="Export output text as a .txt file">Export .txt</button>
+                <button class="pane-action-btn" onclick="exportRichDoc()" title="Export output as a formatted document (.html format that opens directly as a rich document in Word/Google Docs)">Export Doc</button>
+                <button class="pane-action-btn text-danger" onclick="clearCraftedOutput()" title="Clear output text">Clear</button>
               </div>
               
               <!-- Manual Mode header actions with Undo/Redo arrows -->
-              <div class="pane-actions" id="pane-actions-manual" style="display:none;">
-                <button class="pane-action-btn" id="btn-manual-undo" onclick="triggerManualUndo()" disabled title="Undo last replacement">
+              <div class="pane-actions" id="pane-actions-manual" style="display:none;" title="Manual mode toolbar actions">
+                <button class="pane-action-btn" id="btn-manual-undo" onclick="triggerManualUndo()" disabled title="Undo last replacement (manual synonyms history)">
                   <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.2 8 12.5 8z" fill="currentColor"/></svg>
                 </button>
-                <button class="pane-action-btn" id="btn-manual-redo" onclick="triggerManualRedo()" disabled title="Redo replacement">
+                <button class="pane-action-btn" id="btn-manual-redo" onclick="triggerManualRedo()" disabled title="Redo replacement (manual synonyms history)">
                   <svg viewBox="0 0 24 24" width="16" height="16"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.7 0-8.58 3.03-9.96 7.22l2.37.78c1.05-3.19 4.06-5.5 7.59-5.5 1.96 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z" fill="currentColor"/></svg>
                 </button>
-                <button class="pane-action-btn" onclick="syncManualToInput()">Apply edits to original</button>
-                <button class="pane-action-btn" onclick="copyManualText()">Copy Text</button>
-                <button class="pane-action-btn text-danger" onclick="clearCraftedOutput()">Clear</button>
+                <button class="pane-action-btn" onclick="syncManualToInput()" title="Sync manual text modifications back to the original input editor pane">Apply edits to original</button>
+                <button class="pane-action-btn" onclick="copyManualText()" title="Copy manual mode crafted text as plain text to clipboard">Copy Text</button>
+                <button class="pane-action-btn" onclick="copyRichText()" title="Copy crafted output as formatted rich text (keeps Lora font, line spacing, and margins)">Copy Rich</button>
+                <button class="pane-action-btn" onclick="exportRichDoc()" title="Export output as a formatted document (.html format that opens directly as a rich document in Word/Google Docs)">Export Doc</button>
+                <button class="pane-action-btn text-danger" onclick="clearCraftedOutput()" title="Clear manual mode output text">Clear</button>
               </div>
             </div>
-            <div class="editor-body">
+            <div class="editor-body" title="Result output content viewer box">
               <!-- 1. Plain text text editor (Auto Mode) -->
-              <textarea id="editor-output" readonly placeholder="Your crafted text will appear here..."></textarea>
+              <textarea id="editor-output" readonly title="Rewritten output draft" placeholder="Your crafted text will appear here..."></textarea>
               <!-- 2. Rich text diff highlighted container (Auto Mode) -->
-              <div id="editor-output-diff" class="diff-container" style="display:none;"></div>
+              <div id="editor-output-diff" class="diff-container" title="Diff highlight: Red indicates deleted text, Green indicates new rephrased text" style="display:none;"></div>
+              
+              <!-- 4. Interactive sentence-level AI Heat Map scan view -->
+              <div id="editor-output-heatmap" class="heatmap-container" style="display:none;" title="AI Heat Map: Hover over sentences to see AI probability; click to rewrite.">
+                <div class="placeholder-word-text centered">
+                  Craft some text or type inside the editor and click "Scan for AI" to show the sentence heat map.
+                </div>
+              </div>
               
               <!-- 3. Interactive word token tagging space (Manual Mode) -->
-              <div id="editor-output-manual" class="manual-workspace-container" style="display:none;">
+              <div id="editor-output-manual" class="manual-workspace-container" style="display:none;" title="Parts of speech tokens space: hover and click on words to customize synonyms">
                 <div class="placeholder-word-text centered">
                   Enter text on the left and click "ANALYZE TEXT" to identify parts of speech and swap synonyms word-by-word.
                 </div>
               </div>
             </div>
-            <div class="pane-footer">
+            <div class="pane-footer" title="Output statistics summary">
               <span id="output-word-count">0 words</span>
               <span id="output-saving-indicator" class="saving-indicator">Autosaved</span>
             </div>
@@ -479,6 +526,34 @@
       <div class="modal-footer">
         <button class="modal-btn secondary" onclick="closeReviewModal()">Cancel</button>
         <button class="modal-btn primary" onclick="submitReview()">Submit Review</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Sentence Rephrase Selector -->
+  <div class="modal-backdrop" id="modal-sentence-rephrase">
+    <div class="modal-card" style="width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Rewrite Sentence</h3>
+        <button class="modal-close" onclick="closeSentenceRephraseWidget()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Original Sentence</label>
+          <div id="rephrase-original-sentence" style="font-family: var(--font-serif); font-size: 1rem; line-height: 1.5; padding: 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md); max-height: 90px; overflow-y: auto;">
+            Original sentence text goes here...
+          </div>
+        </div>
+        
+        <div class="form-group" style="margin-top: 10px;">
+          <label class="form-label">AI Paraphrase Variations</label>
+          <div id="rephrase-variations-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 240px; overflow-y: auto;">
+            <div class="placeholder-word-text">Loading rephrases from AI...</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn secondary" onclick="closeSentenceRephraseWidget()" style="width: 100%;">Cancel</button>
       </div>
     </div>
   </div>

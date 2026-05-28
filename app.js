@@ -36,6 +36,11 @@ const state = {
   reviewsList: [],
   selectedReviewRating: 5,
   
+  // Projects Library States
+  projectsList: [],
+  activeProjectId: null,
+  showHeatmap: false,
+  
   // Mobile Responsive States
   mobileActivePane: 'input',
   isMobileSidebarOpen: false
@@ -76,6 +81,15 @@ window.addEventListener('DOMContentLoaded', () => {
       popup.classList.remove('active');
     }
   });
+
+  // Auto-save projects when editing text
+  if (editorInput) {
+    editorInput.addEventListener('input', autoSaveCurrentProject);
+  }
+  const editorOutput = document.getElementById('editor-output');
+  if (editorOutput) {
+    editorOutput.addEventListener('input', autoSaveCurrentProject);
+  }
 });
 
 function loadSettingsFromStorage() {
@@ -146,6 +160,7 @@ function loadSettingsFromStorage() {
   }
   
   loadThemeFromStorage();
+  loadProjectsFromStorage();
 }
 
 // --- Navigation / Theme / Audio Switchers ---
@@ -163,7 +178,7 @@ function toggleMute() {
 }
 
 function loadThemeFromStorage() {
-  const savedTheme = localStorage.getItem('wc_theme') || 'theme-dark';
+  const savedTheme = localStorage.getItem('wc_theme') || 'theme-win11';
   setTheme(savedTheme);
 }
 
@@ -453,6 +468,7 @@ function switchCraftType(type) {
   const autoPanel = document.getElementById('panel-auto-controls');
   const manualPanel = document.getElementById('panel-manual-controls');
   const reviewsPanel = document.getElementById('panel-reviews-controls');
+  const projectsPanel = document.getElementById('panel-projects-controls');
   
   const autoActions = document.getElementById('pane-actions-auto');
   const manualActions = document.getElementById('pane-actions-manual');
@@ -460,12 +476,14 @@ function switchCraftType(type) {
   const autoOutput = document.getElementById('editor-output');
   const diffOutput = document.getElementById('editor-output-diff');
   const manualOutput = document.getElementById('editor-output-manual');
+  const heatmapOutput = document.getElementById('editor-output-heatmap');
   
   const headerTitle = document.getElementById('app-title-label');
   const craftBtnText = document.getElementById('craft-btn-text');
   
   // Close popup if open
   document.getElementById('synonym-popup').classList.remove('active');
+  if (heatmapOutput) heatmapOutput.style.display = 'none';
   
   if (type === 'auto') {
     document.getElementById('btn-tab-auto').classList.add('active');
@@ -473,12 +491,17 @@ function switchCraftType(type) {
     autoPanel.classList.add('active');
     manualPanel.classList.remove('active');
     reviewsPanel.classList.remove('active');
+    if (projectsPanel) projectsPanel.classList.remove('active');
     
     autoActions.style.display = 'flex';
     manualActions.style.display = 'none';
     
-    // Restore diff state display if active
-    if (state.showDiff) {
+    // Restore diff or heatmap or plain text display if active
+    if (state.showHeatmap) {
+      autoOutput.style.display = 'none';
+      diffOutput.style.display = 'none';
+      if (heatmapOutput) heatmapOutput.style.display = 'block';
+    } else if (state.showDiff) {
       autoOutput.style.display = 'none';
       diffOutput.style.display = 'block';
     } else {
@@ -496,6 +519,7 @@ function switchCraftType(type) {
     autoPanel.classList.remove('active');
     manualPanel.classList.add('active');
     reviewsPanel.classList.remove('active');
+    if (projectsPanel) projectsPanel.classList.remove('active');
     
     autoActions.style.display = 'none';
     manualActions.style.display = 'flex';
@@ -506,13 +530,13 @@ function switchCraftType(type) {
     
     headerTitle.textContent = "Manual Word Craftsman";
     craftBtnText.textContent = "ANALYZE TEXT";
-  } else {
-    // Reviews Tab
+  } else if (type === 'reviews') {
     document.getElementById('btn-tab-reviews').classList.add('active');
     
     autoPanel.classList.remove('active');
     manualPanel.classList.remove('active');
     reviewsPanel.classList.add('active');
+    if (projectsPanel) projectsPanel.classList.remove('active');
     
     autoActions.style.display = 'none';
     manualActions.style.display = 'none';
@@ -523,6 +547,30 @@ function switchCraftType(type) {
     
     headerTitle.textContent = "Word Craft Reviews";
     craftBtnText.textContent = "WRITE REVIEW";
+  } else {
+    // Projects Tab
+    const tabProj = document.getElementById('btn-tab-projects');
+    if (tabProj) tabProj.classList.add('active');
+    
+    autoPanel.classList.remove('active');
+    manualPanel.classList.remove('active');
+    reviewsPanel.classList.remove('active');
+    if (projectsPanel) projectsPanel.classList.add('active');
+    
+    autoActions.style.display = 'flex';
+    manualActions.style.display = 'none';
+    
+    if (state.showDiff) {
+      autoOutput.style.display = 'none';
+      diffOutput.style.display = 'block';
+    } else {
+      autoOutput.style.display = 'block';
+      diffOutput.style.display = 'none';
+    }
+    manualOutput.style.display = 'none';
+    
+    headerTitle.textContent = "Projects & History";
+    craftBtnText.textContent = "NEW DOCUMENT";
   }
   
   audio.playClick();
@@ -534,8 +582,10 @@ function triggerMainAction() {
     craftText();
   } else if (state.craftType === 'manual') {
     analyzeManualText();
-  } else {
+  } else if (state.craftType === 'reviews') {
     openReviewModal();
+  } else {
+    createNewProject();
   }
 }
 
@@ -1004,6 +1054,7 @@ async function craftText() {
     document.getElementById('output-word-count').textContent = `${outWordCount} words`;
     
     runBypassAnalysis(cleanText);
+    autoSaveCurrentProject();
     
     audio.playDiscover();
     
@@ -1435,32 +1486,42 @@ async function selectWord(index, event) {
   popup.style.top = `${top}px`;
   popup.classList.add('active');
 
+  const defEl = document.getElementById('selected-word-definition');
+  if (defEl) {
+    defEl.innerHTML = '<span class="placeholder-word-text">Searching definition...</span>';
+  }
+
   try {
-    // Query Datamuse API for synonyms, means like, and antonyms in parallel
+    // Query Datamuse API and Free Dictionary API in parallel
     const relUrl = `https://api.datamuse.com/words?rel_syn=${cleanWord}&max=8`;
     const mlUrl = `https://api.datamuse.com/words?ml=${cleanWord}&max=12`;
     const antUrl = `https://api.datamuse.com/words?rel_ant=${cleanWord}&max=8`;
     const trgUrl = `https://api.datamuse.com/words?rel_trg=${cleanWord}&max=8`;
+    const dictUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${cleanWord}`;
+    const dmDefUrl = `https://api.datamuse.com/words?sp=${cleanWord}&md=d&max=1`;
     
     let synonyms = [];
     let antonyms = [];
+    let definitionText = "No definition found.";
     
-    const [relRes, antRes, mlRes] = await Promise.all([
+    const [relRes, antRes, mlRes, dictRes, dmDefRes] = await Promise.all([
       fetch(relUrl).catch(() => null),
       fetch(antUrl).catch(() => null),
-      fetch(mlUrl).catch(() => null)
+      fetch(mlUrl).catch(() => null),
+      fetch(dictUrl).catch(() => null),
+      fetch(dmDefUrl).catch(() => null)
     ]);
     
     if (relRes && relRes.ok) {
       const relData = await relRes.json();
-      synonyms = relData.map(w => w.word);
+      synonyms = relData.map(w => ({ word: w.word, score: w.score || 900 }));
     }
     
     if (mlRes && mlRes.ok) {
       const mlData = await mlRes.json();
       mlData.forEach(w => {
-        if (!synonyms.includes(w.word) && w.word !== cleanWord) {
-          synonyms.push(w.word);
+        if (!synonyms.some(s => s.word === w.word) && w.word !== cleanWord) {
+          synonyms.push({ word: w.word, score: w.score || 500 });
         }
       });
     }
@@ -1471,27 +1532,103 @@ async function selectWord(index, event) {
       if (trgRes && trgRes.ok) {
         const trgData = await trgRes.json();
         trgData.forEach(w => {
-          if (!synonyms.includes(w.word) && w.word !== cleanWord) {
-            synonyms.push(w.word);
+          if (!synonyms.some(s => s.word === w.word) && w.word !== cleanWord) {
+            synonyms.push({ word: w.word, score: w.score || 400 });
           }
         });
       }
     }
     
-    synonyms = synonyms.slice(0, 12);
+    // Filter synonyms by manual complexity slider
+    const richnessLevel = parseInt(document.getElementById('manual-synonym-richness')?.value || 2);
+    let filteredSynonyms = [];
     
-    if (antRes.ok) {
+    if (richnessLevel === 1) {
+      // Common: high score words
+      filteredSynonyms = synonyms
+        .filter(s => s.score > 700)
+        .sort((a, b) => b.score - a.score)
+        .map(s => s.word);
+        
+      if (filteredSynonyms.length < 4) {
+        filteredSynonyms = synonyms
+          .sort((a, b) => b.score - a.score)
+          .map(s => s.word);
+      }
+    } else if (richnessLevel === 3) {
+      // Rare / Creative: lower score words brought to top
+      filteredSynonyms = synonyms
+        .filter(s => s.score <= 700)
+        .sort((a, b) => a.score - b.score)
+        .map(s => s.word);
+        
+      if (filteredSynonyms.length < 4) {
+        filteredSynonyms = synonyms
+          .sort((a, b) => a.score - b.score)
+          .map(s => s.word);
+      }
+    } else {
+      // Balanced
+      filteredSynonyms = synonyms
+        .sort((a, b) => b.score - a.score)
+        .map(s => s.word);
+    }
+    
+    // De-duplicate and slice to max 12
+    filteredSynonyms = [...new Set(filteredSynonyms)].slice(0, 12);
+    
+    if (antRes && antRes.ok) {
       const antData = await antRes.json();
       antonyms = antData.map(w => w.word).slice(0, 12);
+    }
+    
+    // Parse dictionary definitions
+    if (dictRes && dictRes.ok) {
+      try {
+        const dictData = await dictRes.json();
+        const meanings = dictData[0]?.meanings;
+        if (meanings && meanings.length > 0) {
+          const firstMeaning = meanings[0];
+          const partOfSpeech = firstMeaning.partOfSpeech;
+          const firstDef = firstMeaning.definitions?.[0];
+          if (firstDef) {
+            definitionText = `(${partOfSpeech}) ${firstDef.definition}`;
+            if (firstDef.example) {
+              definitionText += `<br><span style="opacity:0.75; font-style:italic; display:block; margin-top:2px;">Example: "${firstDef.example}"</span>`;
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Failed to parse dictionary API", e);
+      }
+    } else if (dmDefRes && dmDefRes.ok) {
+      try {
+        const dmDefData = await dmDefRes.json();
+        const wordInfo = dmDefData[0];
+        if (wordInfo && wordInfo.defs && wordInfo.defs.length > 0) {
+          const defParts = wordInfo.defs[0].split('\t');
+          if (defParts.length > 1) {
+            definitionText = `(${defParts[0]}) ${defParts[1]}`;
+          } else {
+            definitionText = wordInfo.defs[0];
+          }
+        }
+      } catch (e) {
+        console.error("Failed to parse Datamuse definition", e);
+      }
+    }
+    
+    if (defEl) {
+      defEl.innerHTML = definitionText;
     }
     
     // Format capitalized replacements if the original word was capitalized
     const isCapitalized = token.text[0] === token.text[0].toUpperCase() && token.text[0] !== token.text[0].toLowerCase();
     
     // 1. Populate the left-side details panel (Synonyms)
-    if (synonyms.length > 0) {
+    if (filteredSynonyms.length > 0) {
       listEl.innerHTML = '';
-      synonyms.forEach(syn => {
+      filteredSynonyms.forEach(syn => {
         const displaySyn = isCapitalized ? syn[0].toUpperCase() + syn.slice(1) : syn;
         const chip = document.createElement('span');
         chip.className = 'synonym-chip';
@@ -1521,13 +1658,13 @@ async function selectWord(index, event) {
     // 2. Populate the floating absolute dropdown
     popup.innerHTML = `<div class="dropdown-header-title">"${token.text}" Choices</div>`;
     
-    if (synonyms.length > 0) {
+    if (filteredSynonyms.length > 0) {
       const synHeader = document.createElement('div');
       synHeader.className = 'dropdown-sub-header-title';
       synHeader.textContent = 'Synonyms';
       popup.appendChild(synHeader);
       
-      synonyms.forEach(syn => {
+      filteredSynonyms.forEach(syn => {
         const displaySyn = isCapitalized ? syn[0].toUpperCase() + syn.slice(1) : syn;
         const item = document.createElement('div');
         item.className = 'dropdown-syn-item';
@@ -1553,7 +1690,7 @@ async function selectWord(index, event) {
       });
     }
     
-    if (synonyms.length === 0 && antonyms.length === 0) {
+    if (filteredSynonyms.length === 0 && antonyms.length === 0) {
       popup.innerHTML = `<div class="dropdown-header-title">"${token.text}" Choices</div>
                          <div class="dropdown-syn-item" style="opacity: 0.5;">No results found.</div>`;
     }
@@ -1608,6 +1745,7 @@ function rebuildInputFromTokens() {
   });
   document.getElementById('editor-input').value = rebuilt;
   updateInputStats();
+  autoSaveCurrentProject();
 }
 
 function syncManualToInput() {
@@ -1976,3 +2114,755 @@ window.addEventListener('message', (event) => {
     }
   }
 });
+
+// --- PROJECTS LIBRARY MANAGEMENT ---
+
+function loadProjectsFromStorage() {
+  try {
+    const data = localStorage.getItem('wc_projects');
+    if (data) {
+      state.projectsList = JSON.parse(data);
+    } else {
+      state.projectsList = [];
+    }
+  } catch (e) {
+    console.error(e);
+    state.projectsList = [];
+  }
+  
+  // Load active project ID or select the first one, or create one if list is empty
+  const activeId = localStorage.getItem('wc_active_project_id');
+  if (activeId && state.projectsList.some(p => p.id === activeId)) {
+    state.activeProjectId = activeId;
+  } else if (state.projectsList.length > 0) {
+    state.activeProjectId = state.projectsList[0].id;
+  } else {
+    // Create initial project with current inputs (or blank)
+    const initProj = {
+      id: 'proj_' + Date.now(),
+      title: 'Untitled Draft',
+      inputContent: document.getElementById('editor-input').value || '',
+      outputContent: document.getElementById('editor-output').value || '',
+      timestamp: Date.now()
+    };
+    state.projectsList.push(initProj);
+    state.activeProjectId = initProj.id;
+    saveProjectsToStorage();
+  }
+  
+  // Set current editors values from the active project
+  const activeProj = state.projectsList.find(p => p.id === state.activeProjectId);
+  if (activeProj) {
+    document.getElementById('editor-input').value = activeProj.inputContent;
+    document.getElementById('editor-output').value = activeProj.outputContent;
+  }
+  
+  renderProjectsList();
+}
+
+function saveProjectsToStorage() {
+  localStorage.setItem('wc_projects', JSON.stringify(state.projectsList));
+  localStorage.setItem('wc_active_project_id', state.activeProjectId);
+}
+
+function renderProjectsList() {
+  const container = document.getElementById('projects-list-container');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  if (state.projectsList.length === 0) {
+    container.innerHTML = `<div class="placeholder-word-text centered" style="margin-top: 20px;">No saved documents. Click 'New Document' to start.</div>`;
+    return;
+  }
+  
+  // Sort projects: newest edited first
+  const sorted = [...state.projectsList].sort((a, b) => b.timestamp - a.timestamp);
+  
+  sorted.forEach(proj => {
+    const isAct = proj.id === state.activeProjectId;
+    const card = document.createElement('div');
+    card.className = `project-card ${isAct ? 'active' : ''}`;
+    card.setAttribute('onclick', `loadProject('${proj.id}')`);
+    card.setAttribute('title', `Click to open "${proj.title}"`);
+    
+    const dateStr = new Date(proj.timestamp).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    
+    // Create excerpt
+    const excerpt = proj.inputContent 
+      ? proj.inputContent.substring(0, 60) + (proj.inputContent.length > 60 ? '...' : '') 
+      : 'Empty document';
+    
+    card.innerHTML = `
+      <div class="project-card-header">
+        <div class="project-card-title" title="${proj.title}">${proj.title}</div>
+        <div class="project-card-actions">
+          <button class="project-action-btn" title="Rename Document" onclick="renameProject('${proj.id}', event)">
+            <svg viewBox="0 0 24 24" width="14" height="14"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor"/></svg>
+          </button>
+          <button class="project-action-btn delete-btn" title="Delete Document" onclick="deleteProject('${proj.id}', event)">
+            <svg viewBox="0 0 24 24" width="14" height="14"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="currentColor"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="project-card-excerpt">${excerpt}</div>
+      <div class="project-card-meta">Edited: ${dateStr}</div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function createNewProject() {
+  const newProj = {
+    id: 'proj_' + Date.now(),
+    title: 'New Draft ' + (state.projectsList.length + 1),
+    inputContent: '',
+    outputContent: '',
+    timestamp: Date.now()
+  };
+  
+  state.projectsList.push(newProj);
+  state.activeProjectId = newProj.id;
+  saveProjectsToStorage();
+  
+  // Clear inputs
+  document.getElementById('editor-input').value = '';
+  document.getElementById('editor-output').value = '';
+  const diffOutput = document.getElementById('editor-output-diff');
+  if (diffOutput) diffOutput.innerHTML = '';
+  
+  updateInputStats();
+  renderProjectsList();
+  audio.playDiscover();
+  
+  // Switch to auto mode for typing
+  switchCraftType('auto');
+}
+
+function loadProject(id) {
+  const proj = state.projectsList.find(p => p.id === id);
+  if (!proj) return;
+  
+  state.activeProjectId = id;
+  saveProjectsToStorage();
+  
+  document.getElementById('editor-input').value = proj.inputContent;
+  document.getElementById('editor-output').value = proj.outputContent;
+  
+  // Clear diff view and manual tags
+  const diffOutput = document.getElementById('editor-output-diff');
+  if (diffOutput) diffOutput.style.display = 'none';
+  const manualOutput = document.getElementById('editor-output-manual');
+  if (manualOutput) manualOutput.style.display = 'none';
+  
+  state.showDiff = false;
+  state.autoHistory = [];
+  state.autoHistoryIndex = -1;
+  updateAutoUndoRedoButtons();
+  
+  const toggleDiffBtn = document.getElementById('btn-toggle-diff');
+  if (toggleDiffBtn) toggleDiffBtn.textContent = 'Show Changes';
+  
+  const autoOutput = document.getElementById('editor-output');
+  if (autoOutput && state.craftType !== 'manual') autoOutput.style.display = 'block';
+  
+  updateInputStats();
+  renderProjectsList();
+  audio.playClick();
+}
+
+function deleteProject(id, event) {
+  if (event) event.stopPropagation(); // Avoid loading deleted project
+  
+  if (state.projectsList.length <= 1) {
+    alert("You must keep at least one document in the list!");
+    audio.playError();
+    return;
+  }
+  
+  if (!confirm("Are you sure you want to delete this document?")) return;
+  
+  state.projectsList = state.projectsList.filter(p => p.id !== id);
+  
+  if (state.activeProjectId === id) {
+    state.activeProjectId = state.projectsList[0].id;
+    const proj = state.projectsList[0];
+    document.getElementById('editor-input').value = proj.inputContent;
+    document.getElementById('editor-output').value = proj.outputContent;
+  }
+  
+  saveProjectsToStorage();
+  updateInputStats();
+  renderProjectsList();
+  audio.playError();
+}
+
+function renameProject(id, event) {
+  if (event) event.stopPropagation(); // Avoid loading project while prompting
+  
+  const proj = state.projectsList.find(p => p.id === id);
+  if (!proj) return;
+  
+  const newName = prompt("Rename document:", proj.title);
+  if (newName === null) return;
+  
+  const trimmed = newName.trim();
+  if (!trimmed) {
+    alert("Document name cannot be blank!");
+    return;
+  }
+  
+  proj.title = trimmed;
+  proj.timestamp = Date.now();
+  
+  saveProjectsToStorage();
+  renderProjectsList();
+  audio.playClick();
+}
+
+function autoSaveCurrentProject() {
+  if (!state.activeProjectId) return;
+  
+  const proj = state.projectsList.find(p => p.id === state.activeProjectId);
+  if (!proj) return;
+  
+  const inputVal = document.getElementById('editor-input').value;
+  const outputVal = document.getElementById('editor-output').value;
+  
+  // Only save if there is an actual change
+  if (proj.inputContent !== inputVal || proj.outputContent !== outputVal) {
+    proj.inputContent = inputVal;
+    proj.outputContent = outputVal;
+    proj.timestamp = Date.now();
+    saveProjectsToStorage();
+    
+    // Briefly update projects list excerpt without rebuilding the entire UI to keep typing smooth
+    const cards = document.querySelectorAll('.project-card');
+    cards.forEach(card => {
+      // Find the card for active project
+      if (card.classList.contains('active')) {
+        const excerptEl = card.querySelector('.project-card-excerpt');
+        if (excerptEl) {
+          excerptEl.textContent = inputVal 
+            ? inputVal.substring(0, 60) + (inputVal.length > 60 ? '...' : '') 
+            : 'Empty document';
+        }
+      }
+    });
+  }
+}
+
+function onSynonymRichnessChange() {
+  audio.playClick();
+  if (state.selectedWordIndex !== null) {
+    const activeSpan = document.querySelector(`.word-span[data-index="${state.selectedWordIndex}"]`);
+    if (activeSpan) {
+      const mockEvent = {
+        target: activeSpan,
+        stopPropagation: () => {},
+        clientX: 0,
+        clientY: 0
+      };
+      selectWord(state.selectedWordIndex, mockEvent);
+    }
+  }
+}
+
+// --- RICH TEXT EXPORTS & COPY ---
+
+function getActiveOutputText() {
+  if (state.craftType === 'manual') {
+    let text = "";
+    state.manualTokens.forEach(t => {
+      text += (t.pre || '') + t.text + (t.post || '');
+    });
+    return text;
+  } else {
+    return document.getElementById('editor-output').value;
+  }
+}
+
+function copyRichText() {
+  const plainText = getActiveOutputText();
+  if (!plainText) return;
+  
+  // Convert newlines to paragraphs
+  const paragraphs = plainText.split('\n').map(p => {
+    const trimmed = p.trim();
+    if (!trimmed) return '';
+    return `<p style="font-family: 'Lora', Georgia, serif; font-size: 11pt; line-height: 1.6; color: #111111; margin-bottom: 12pt; text-align: justify;">${escapeHTML(trimmed)}</p>`;
+  }).join('');
+  
+  const htmlContent = `
+    <div style="font-family: 'Lora', Georgia, serif; max-width: 6.5in; margin: 1in auto; line-height: 1.6; color: #111111; font-size: 11pt;">
+      ${paragraphs}
+    </div>
+  `;
+  
+  try {
+    const blobHtml = new Blob([htmlContent], { type: 'text/html' });
+    const blobText = new Blob([plainText], { type: 'text/plain' });
+    
+    navigator.clipboard.write([
+      new ClipboardItem({
+        'text/html': blobHtml,
+        'text/plain': blobText
+      })
+    ]).then(() => {
+      audio.playClick();
+      // Visual feedback on copy rich buttons
+      document.querySelectorAll('button[onclick="copyRichText()"]').forEach(btn => {
+        const oldText = btn.textContent;
+        btn.textContent = "Copied!";
+        setTimeout(() => btn.textContent = oldText, 1500);
+      });
+    }).catch(err => {
+      console.error(err);
+      navigator.clipboard.writeText(plainText);
+    });
+  } catch (e) {
+    console.error(e);
+    navigator.clipboard.writeText(plainText);
+  }
+}
+
+function exportRichDoc() {
+  const plainText = getActiveOutputText();
+  if (!plainText) return;
+  
+  const paragraphs = plainText.split('\n').map(p => {
+    const trimmed = p.trim();
+    if (!trimmed) return '<br>';
+    return `<p style="font-family: 'Lora', Georgia, serif; font-size: 12pt; line-height: 1.6; color: #111111; margin-bottom: 12pt; text-align: justify;">${escapeHTML(trimmed)}</p>`;
+  }).join('');
+  
+  const fullHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Word Craft Document</title>
+  <style>
+    body {
+      margin: 1in;
+      font-family: 'Lora', Georgia, serif;
+      background-color: #ffffff;
+      color: #111111;
+    }
+    p {
+      margin-top: 0;
+      margin-bottom: 12pt;
+      line-height: 1.6;
+      font-size: 12pt;
+      text-align: justify;
+    }
+  </style>
+</head>
+<body>
+  <div style="max-width: 6.5in; margin: 0 auto;">
+    ${paragraphs}
+  </div>
+</body>
+</html>`;
+  
+  const blob = new Blob([fullHtml], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `crafted_document_${Date.now()}.html`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  audio.playClick();
+}
+
+// --- SENTENCE-LEVEL AI DETECTOR SCAN & REPHRASE ---
+
+function calculateSentenceAiScore(sentenceText) {
+  const clean = sentenceText.trim();
+  if (!clean) return 0;
+  
+  const words = clean.toLowerCase().split(/\s+/);
+  const wordCount = words.length;
+  if (wordCount < 4) return 10; // Very short sentences are human-like
+  
+  let score = 30; // base score
+  
+  // Sentence length typical AI sentence length check (10 to 18 words)
+  if (wordCount >= 10 && wordCount <= 18) {
+    score += 15;
+  } else if (wordCount > 25 || wordCount < 7) {
+    score -= 10;
+  }
+  
+  // Transition check
+  const firstWord = words[0].replace(/[^\w]/g, '');
+  const aiTransitions = ['furthermore', 'moreover', 'notably', 'therefore', 'consequently', 'essentially', 'indeed', 'importantly'];
+  if (aiTransitions.includes(firstWord)) {
+    score += 25;
+  }
+  
+  const twoWords = words.slice(0, 2).map(w => w.replace(/[^\w]/g, '')).join(' ');
+  if (twoWords === 'it is' || twoWords === 'there are' || twoWords === 'this shows') {
+    score += 10;
+  }
+  
+  // Deterministic hash component so same sentence gets same score
+  let hash = 0;
+  for (let i = 0; i < clean.length; i++) {
+    hash = (hash * 31 + clean.charCodeAt(i)) | 0;
+  }
+  const variance = Math.abs(hash) % 41; // 0 to 40
+  score += (variance - 20); // shift to -20 to +20
+  
+  // Clichés check
+  const aiCliches = ['delve', 'testament', 'tapestry', 'beacon', 'intricate', 'pinnacle', 'crucial', 'transformative', 'fostering', 'multifaceted'];
+  words.forEach(w => {
+    const cleanW = w.replace(/[^\w]/g, '');
+    if (aiCliches.includes(cleanW)) {
+      score += 15;
+    }
+  });
+  
+  // Bound to 5-99
+  return Math.max(5, Math.min(99, score));
+}
+
+function toggleHeatmapView() {
+  state.showHeatmap = !state.showHeatmap;
+  
+  const btn = document.getElementById('btn-toggle-heatmap');
+  const txtArea = document.getElementById('editor-output');
+  const diffBox = document.getElementById('editor-output-diff');
+  const heatmapBox = document.getElementById('editor-output-heatmap');
+  const manualBox = document.getElementById('editor-output-manual');
+  
+  if (state.showHeatmap) {
+    if (btn) btn.textContent = "Hide AI Scan";
+    if (txtArea) txtArea.style.display = 'none';
+    if (diffBox) diffBox.style.display = 'none';
+    if (manualBox) manualBox.style.display = 'none';
+    if (heatmapBox) heatmapBox.style.display = 'block';
+    
+    renderHeatmap();
+    audio.playClick();
+  } else {
+    if (btn) btn.textContent = "Scan for AI";
+    if (heatmapBox) heatmapBox.style.display = 'none';
+    
+    if (state.craftType === 'manual') {
+      if (manualBox) manualBox.style.display = 'block';
+    } else {
+      if (state.showDiff) {
+        if (diffBox) diffBox.style.display = 'block';
+      } else {
+        if (txtArea) txtArea.style.display = 'block';
+      }
+    }
+    audio.playClick();
+  }
+}
+
+function renderHeatmap() {
+  const container = document.getElementById('editor-output-heatmap');
+  if (!container) return;
+  
+  const text = getActiveOutputText();
+  if (!text.trim()) {
+    container.innerHTML = `
+      <div class="placeholder-word-text centered">
+        No output text to scan. Please craft some text first.
+      </div>
+    `;
+    return;
+  }
+  
+  container.innerHTML = '';
+  
+  // Split text by newlines to preserve paragraphs
+  const paragraphs = text.split('\n');
+  
+  let globalSentenceIndex = 0;
+  state.heatmapSentences = []; // Clear and rebuild
+  
+  paragraphs.forEach((pText, pIdx) => {
+    // If it's a blank line, add a line break
+    if (!pText.trim()) {
+      container.appendChild(document.createElement('br'));
+      return;
+    }
+    
+    const pEl = document.createElement('p');
+    pEl.style.margin = '0 0 12px 0';
+    pEl.style.lineHeight = '1.6';
+    
+    // Split paragraph text into sentences
+    let sList = [];
+    if (window.nlp) {
+      try {
+        sList = window.nlp(pText).sentences().out('array');
+      } catch (e) {
+        sList = pText.match(/[^.!?]+[.!?]+(?:\s+|$)|[^.!?]+$/g) || [pText];
+      }
+    } else {
+      sList = pText.match(/[^.!?]+[.!?]+(?:\s+|$)|[^.!?]+$/g) || [pText];
+    }
+    
+    sList.forEach(sText => {
+      if (!sText.trim()) return;
+      
+      const score = calculateSentenceAiScore(sText);
+      let heatClass = 'heat-green';
+      let probLabel = 'Low AI probability';
+      if (score >= 80) {
+        heatClass = 'heat-red';
+        probLabel = 'High AI probability';
+      } else if (score >= 40) {
+        heatClass = 'heat-yellow';
+        probLabel = 'Moderate AI probability';
+      }
+      
+      const span = document.createElement('span');
+      span.className = `sentence-span ${heatClass}`;
+      span.textContent = sText;
+      span.dataset.index = globalSentenceIndex;
+      span.title = `${probLabel} (${score}%) — Click to rephrase`;
+      
+      // Store sentence details
+      state.heatmapSentences.push({
+        index: globalSentenceIndex,
+        text: sText,
+        score: score,
+        paragraphIndex: pIdx
+      });
+      
+      span.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openSentenceRephraseWidget(span.dataset.index);
+      });
+      
+      pEl.appendChild(span);
+      globalSentenceIndex++;
+    });
+    
+    container.appendChild(pEl);
+  });
+}
+
+function rebuildTextFromHeatmapSentences() {
+  if (!state.heatmapSentences || state.heatmapSentences.length === 0) return '';
+  
+  // Group sentences by paragraph index
+  const paragraphsMap = {};
+  state.heatmapSentences.forEach(s => {
+    if (!paragraphsMap[s.paragraphIndex]) {
+      paragraphsMap[s.paragraphIndex] = [];
+    }
+    paragraphsMap[s.paragraphIndex].push(s.text);
+  });
+  
+  const maxParagraphIndex = Math.max(...state.heatmapSentences.map(s => s.paragraphIndex));
+  const paragraphTexts = [];
+  
+  for (let i = 0; i <= maxParagraphIndex; i++) {
+    const sentences = paragraphsMap[i] || [];
+    let pText = "";
+    sentences.forEach((sText, idx) => {
+      if (idx > 0 && !pText.endsWith(' ') && !sText.startsWith(' ')) {
+        pText += ' ';
+      }
+      pText += sText;
+    });
+    paragraphTexts.push(pText);
+  }
+  
+  return paragraphTexts.join('\n');
+}
+
+async function requestAiContent(systemInstruction, promptText) {
+  if (!state.apiKey) {
+    throw new Error("API Key is missing. Please configure it in Settings.");
+  }
+  
+  if (state.apiProvider === 'gemini') {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${state.geminiModel}:generateContent?key=${state.apiKey}`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{ text: `${systemInstruction}\n\nUser Input:\n${promptText}` }]
+        }]
+      })
+    });
+    
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.error?.message || "HTTP error " + response.status);
+    }
+    
+    const resData = await response.json();
+    let resultText = resData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    resultText = resultText.trim();
+    if (resultText.startsWith("```")) {
+      resultText = resultText.replace(/^```[a-zA-Z]*\n/, '').replace(/\n```$/, '');
+    }
+    return resultText.trim();
+  } else {
+    const url = state.apiProvider === 'openrouter'
+      ? "https://openrouter.ai/api/v1/chat/completions"
+      : "https://integrate.api.nvidia.com/v1/chat/completions";
+      
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${state.apiKey}`
+      },
+      body: JSON.stringify({
+        model: state.geminiModel,
+        messages: [
+          { role: 'system', content: systemInstruction },
+          { role: 'user', content: promptText }
+        ]
+      })
+    });
+    
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.error?.message || `${state.apiProvider === 'openrouter' ? 'OpenRouter' : 'NVIDIA'} error ` + response.status);
+    }
+    
+    const resData = await response.json();
+    let resultText = resData.choices?.[0]?.message?.content || '';
+    resultText = resultText.trim();
+    if (resultText.startsWith("```")) {
+      resultText = resultText.replace(/^```[a-zA-Z]*\n/, '').replace(/\n```$/, '');
+    }
+    return resultText.trim();
+  }
+}
+
+async function openSentenceRephraseWidget(sentenceIndex) {
+  const index = parseInt(sentenceIndex);
+  if (isNaN(index) || !state.heatmapSentences || !state.heatmapSentences[index]) return;
+  
+  const sentenceObj = state.heatmapSentences[index];
+  const sentenceText = sentenceObj.text;
+  
+  const originalDiv = document.getElementById('rephrase-original-sentence');
+  if (originalDiv) originalDiv.textContent = sentenceText;
+  
+  const listDiv = document.getElementById('rephrase-variations-list');
+  if (listDiv) {
+    listDiv.innerHTML = `<div class="placeholder-word-text centered" style="padding: 20px;">
+      <svg class="spin-anim" viewBox="0 0 24 24" width="24" height="24" style="color: var(--primary); margin-bottom: 8px;"><path d="M12 4V2C6.48 2 2 6.48 2 12h2c0-4.41 3.59-8 8-8zm0 14c4.41 0 8-3.59 8-8h2c0 5.52-4.48 10-10 10v-2z" fill="currentColor"/></svg>
+      <div style="font-weight: 600;">Requesting alchemical rewrites...</div>
+    </div>`;
+  }
+  
+  const modal = document.getElementById('modal-sentence-rephrase');
+  if (modal) modal.classList.add('active');
+  audio.playClick();
+  
+  try {
+    const toneText = state.editorTone || 'professional';
+    const systemInstruction = `You are Word Craft, an expert human editor.
+Provide exactly 3 distinct, high-quality humanized paraphrases of the sentence provided by the user.
+The paraphrases must maintain the exact same meaning but vary vocabulary, sentence structure, and flow.
+Ensure the style matches a ${toneText.toUpperCase()} tone.
+Output format:
+Option 1: [first paraphrase]
+Option 2: [second paraphrase]
+Option 3: [third paraphrase]
+Do not output any introductory or concluding text, explanations, or markdown. Only output the options.`;
+
+    const promptText = `Please paraphrase this sentence:\n\n${sentenceText}`;
+    const responseText = await requestAiContent(systemInstruction, promptText);
+    
+    const lines = responseText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    const options = [];
+    lines.forEach(line => {
+      let cleanLine = line
+        .replace(/^Option \d+:\s*/i, '')
+        .replace(/^\d+[\.\)]\s*/, '')
+        .replace(/^-\s*/, '')
+        .replace(/^\[OPT\]\s*/i, '')
+        .trim();
+      cleanLine = cleanLine.replace(/^["']|["']$/g, '').trim();
+      if (cleanLine) {
+        options.push(cleanLine);
+      }
+    });
+    
+    if (options.length === 0) {
+      options.push(sentenceText);
+    }
+    
+    if (listDiv) {
+      listDiv.innerHTML = '';
+      const displayOptions = options.slice(0, 3);
+      
+      displayOptions.forEach((optText, optIdx) => {
+        const card = document.createElement('div');
+        card.className = 'rephrase-option-card';
+        card.innerHTML = `
+          <div style="font-size: 0.75rem; font-weight: 700; color: var(--cyan); text-transform: uppercase; margin-bottom: 4px;">Option ${optIdx + 1}</div>
+          <div style="font-family: var(--font-serif); font-size: 0.95rem; line-height: 1.5; color: var(--text-main);">${escapeHTML(optText)}</div>
+        `;
+        card.onclick = () => {
+          applySentenceRephrase(index, optText);
+        };
+        listDiv.appendChild(card);
+      });
+    }
+    
+  } catch (error) {
+    if (listDiv) {
+      listDiv.innerHTML = `
+        <div class="placeholder-word-text centered" style="color: var(--danger); padding: 20px;">
+          <strong>Paraphrase failed</strong>
+          <div style="font-size: 0.8rem; margin-top: 4px;">${error.message}</div>
+        </div>
+      `;
+    }
+    audio.playError();
+  }
+}
+
+function closeSentenceRephraseWidget() {
+  const modal = document.getElementById('modal-sentence-rephrase');
+  if (modal) modal.classList.remove('active');
+  audio.playClick();
+}
+
+function applySentenceRephrase(sentenceIndex, newSentenceText) {
+  const index = parseInt(sentenceIndex);
+  if (isNaN(index) || !state.heatmapSentences || !state.heatmapSentences[index]) return;
+  
+  state.heatmapSentences[index].text = newSentenceText;
+  
+  const text = rebuildTextFromHeatmapSentences();
+  
+  const outputArea = document.getElementById('editor-output');
+  if (outputArea) {
+    outputArea.value = text;
+  }
+  
+  // Re-generate auto history and re-evaluate stats
+  pushAutoHistory(text);
+  autoSaveCurrentProject();
+  runBypassAnalysis(text);
+  
+  closeSentenceRephraseWidget();
+  renderHeatmap();
+  audio.playDiscover();
+}
+
