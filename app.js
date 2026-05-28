@@ -669,7 +669,7 @@ function copyCraftedText() {
   
   const copyBtn = document.querySelector('.pane-header button[onclick="copyCraftedText()"]');
   const oldText = copyBtn.textContent;
-  copyBtn.textContent = "Copied!";
+  copyBtn.textContent = "COPIED!";
   setTimeout(() => copyBtn.textContent = oldText, 1500);
 }
 
@@ -811,7 +811,7 @@ function toggleDiffView() {
   const diffBox = document.getElementById('editor-output-diff');
   
   if (state.showDiff) {
-    btn.textContent = "Plain Text";
+    btn.textContent = "PLAIN TEXT";
     txtArea.style.display = 'none';
     diffBox.style.display = 'block';
     
@@ -820,7 +820,7 @@ function toggleDiffView() {
     const diffHTML = computeDiffHTML(original, crafted);
     diffBox.innerHTML = diffHTML;
   } else {
-    btn.textContent = "Changes";
+    btn.textContent = "CHANGES";
     txtArea.style.display = 'block';
     diffBox.style.display = 'none';
   }
@@ -1766,7 +1766,7 @@ function syncManualToInput() {
                   document.querySelector('.pane-header button[onclick="syncManualToInput()"]');
                   
   const oldText = syncBtn.textContent;
-  syncBtn.textContent = "Synced!";
+  syncBtn.textContent = "SYNCED!";
   setTimeout(() => syncBtn.textContent = oldText, 1500);
 }
 
@@ -1784,7 +1784,7 @@ function copyManualText() {
                   document.querySelector('.pane-header button[onclick="copyManualText()"]');
                   
   const oldText = copyBtn.textContent;
-  copyBtn.textContent = "Copied!";
+  copyBtn.textContent = "COPIED!";
   setTimeout(() => copyBtn.textContent = oldText, 1500);
 }
 
@@ -2307,7 +2307,7 @@ function loadProject(id) {
   updateAutoUndoRedoButtons();
   
   const toggleDiffBtn = document.getElementById('btn-toggle-diff');
-  if (toggleDiffBtn) toggleDiffBtn.textContent = 'Changes';
+  if (toggleDiffBtn) toggleDiffBtn.textContent = 'CHANGES';
   
   const autoOutput = document.getElementById('editor-output');
   if (autoOutput && state.craftType !== 'manual') autoOutput.style.display = 'block';
@@ -2459,7 +2459,7 @@ function copyRichText() {
       // Visual feedback on copy rich buttons
       document.querySelectorAll('button[onclick="copyRichText()"]').forEach(btn => {
         const oldText = btn.textContent;
-        btn.textContent = "Copied!";
+        btn.textContent = "COPIED!";
         setTimeout(() => btn.textContent = oldText, 1500);
       });
     }).catch(err => {
@@ -2584,7 +2584,7 @@ function toggleHeatmapView() {
   const manualBox = document.getElementById('editor-output-manual');
   
   if (state.showHeatmap) {
-    if (btn) btn.textContent = "Hide Scan";
+    if (btn) btn.textContent = "HIDE SCAN";
     if (txtArea) txtArea.style.display = 'none';
     if (diffBox) diffBox.style.display = 'none';
     if (manualBox) manualBox.style.display = 'none';
@@ -2593,7 +2593,7 @@ function toggleHeatmapView() {
     renderHeatmap();
     audio.playClick();
   } else {
-    if (btn) btn.textContent = "Scan";
+    if (btn) btn.textContent = "SCAN";
     if (heatmapBox) heatmapBox.style.display = 'none';
     
     if (state.craftType === 'manual') {

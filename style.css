@@ -95,6 +95,15 @@ body.theme-light {
   -webkit-font-smoothing: antialiased;
 }
 
+button, 
+.pane-action-btn, 
+.craft-tab-btn, 
+.mobile-editor-tab, 
+.modal-btn,
+.mode-select-btn {
+  text-transform: uppercase;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-app);
@@ -203,6 +212,7 @@ body.theme-light .logo-icon {
   color: var(--text-muted);
   cursor: pointer;
   transition: all var(--transition-fast);
+  flex-shrink: 0;
 }
 
 .control-btn:hover {
@@ -254,10 +264,12 @@ body.theme-light .logo-icon {
 
 /* Craft Type Toggle Tabs */
 .craft-type-tabs {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--border-color);
-  padding: 2px;
+  padding: 6px;
   border-radius: var(--radius-md);
   margin-bottom: 8px;
 }
@@ -266,15 +278,14 @@ body.theme-light .craft-type-tabs {
 }
 
 .craft-tab-btn {
-  flex: 1;
-  padding: 8px 4px;
+  padding: 10px 8px;
   border: none;
   background: transparent;
   color: var(--text-muted);
   font-family: var(--font-sans);
   font-weight: 700;
-  font-size: 0.78rem;
-  letter-spacing: -0.2px;
+  font-size: 0.85rem;
+  letter-spacing: -0.1px;
   text-transform: uppercase;
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -733,7 +744,8 @@ body.theme-light .craft-type-tabs {
 
 .pane-actions {
   display: flex;
-  gap: 8px;
+  gap: 12px;
+  align-items: center;
 }
 
 .pane-action-btn {
@@ -777,6 +789,10 @@ body.theme-light .craft-type-tabs {
   background: rgba(255, 71, 87, 0.1);
   color: var(--danger);
   border-color: rgba(255, 71, 87, 0.3);
+}
+
+.pane-action-btn.text-danger {
+  margin-left: 8px;
 }
 
 .editor-body {
