@@ -478,6 +478,7 @@ function switchCraftType(type) {
   const diffOutput = document.getElementById('editor-output-diff');
   const manualOutput = document.getElementById('editor-output-manual');
   const heatmapOutput = document.getElementById('editor-output-heatmap');
+  const reviewsOutput = document.getElementById('editor-output-reviews');
   
   const headerTitle = document.getElementById('app-title-label');
   const craftBtnText = document.getElementById('craft-btn-text');
@@ -510,6 +511,7 @@ function switchCraftType(type) {
       diffOutput.style.display = 'none';
     }
     manualOutput.style.display = 'none';
+    if (reviewsOutput) reviewsOutput.style.display = 'none';
     
     headerTitle.textContent = "AI Paraphraser & Humanizer";
     craftBtnText.textContent = "CRAFT TEXT";
@@ -528,6 +530,7 @@ function switchCraftType(type) {
     autoOutput.style.display = 'none';
     diffOutput.style.display = 'none';
     manualOutput.style.display = 'block';
+    if (reviewsOutput) reviewsOutput.style.display = 'none';
     
     headerTitle.textContent = "Manual Word Craftsman";
     craftBtnText.textContent = "ANALYZE TEXT";
@@ -542,9 +545,10 @@ function switchCraftType(type) {
     autoActions.style.display = 'none';
     manualActions.style.display = 'none';
     
-    autoOutput.style.display = 'block';
+    autoOutput.style.display = 'none';
     diffOutput.style.display = 'none';
     manualOutput.style.display = 'none';
+    if (reviewsOutput) reviewsOutput.style.display = 'block';
     
     headerTitle.textContent = "Word Craft Reviews";
     craftBtnText.textContent = "WRITE REVIEW";
@@ -569,6 +573,7 @@ function switchCraftType(type) {
       diffOutput.style.display = 'none';
     }
     manualOutput.style.display = 'none';
+    if (reviewsOutput) reviewsOutput.style.display = 'none';
     
     headerTitle.textContent = "Projects & History";
     craftBtnText.textContent = "NEW DOCUMENT";

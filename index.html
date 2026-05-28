@@ -71,11 +71,11 @@
             <button class="craft-tab-btn" id="btn-tab-manual" title="Manual Craft: Analyze text parts of speech and swap synonyms word-by-word" onclick="switchCraftType('manual')">
               Manual Craft
             </button>
-            <button class="craft-tab-btn" id="btn-tab-reviews" title="Reviews & Feedback: See ratings and comments from the community" onclick="switchCraftType('reviews')">
-              Reviews
-            </button>
             <button class="craft-tab-btn" id="btn-tab-projects" title="Projects & History: Manage your saved drafts and documents" onclick="switchCraftType('projects')">
               Projects
+            </button>
+            <button class="craft-tab-btn" id="btn-tab-reviews" title="Reviews & Feedback: See ratings and comments from the community" onclick="switchCraftType('reviews')">
+              Reviews
             </button>
           </div>
 
@@ -230,7 +230,24 @@
             </div>
           </div>
 
-          <!-- 3. Reviews & Comments Panel -->
+          <!-- 3. Projects & History Panel -->
+          <div id="panel-projects-controls" class="panel-controls-group" title="Projects & History manager panel">
+            <div class="panel-section" title="Create a new blank document">
+              <button class="mode-select-btn" onclick="createNewProject()" style="width:100%; align-items:center; justify-content:center; padding: 12px; cursor: pointer; display: flex; flex-direction: row; gap: 6px; background: rgba(155, 81, 224, 0.05); border-color: var(--primary);">
+                <span style="font-size: 1.1rem; color: var(--primary);">➕</span>
+                <strong>New Document</strong>
+              </button>
+            </div>
+            
+            <div class="panel-section" style="flex: 1; display: flex; flex-direction: column;" title="List of saved drafts and documents">
+              <h3 class="section-title">Saved Documents</h3>
+              <div class="projects-list-container" id="projects-list-container" title="Scrollable list of drafts and files">
+                <!-- Projects populated dynamically via JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Reviews & Comments Panel -->
           <div id="panel-reviews-controls" class="panel-controls-group" title="Reviews & feedback module panel">
             <div class="panel-section" title="Overall review stats summary">
               <h3 class="section-title">Community Reviews</h3>
@@ -252,30 +269,6 @@
                   <span style="font-size: 1.1rem; color: var(--cyan);">✉</span>
                   <strong style="color: var(--cyan);">Email Daryl</strong>
                 </button>
-              </div>
-            </div>
-
-            <div class="panel-section" style="flex: 1; display: flex; flex-direction: column;" title="Read user comments">
-              <h3 class="section-title">Recent Comments</h3>
-              <div class="reviews-list-container" id="reviews-list-container" title="User ratings scroll list">
-                <!-- Reviews populated dynamically via JS -->
-              </div>
-            </div>
-          </div>
-
-          <!-- 4. Projects & History Panel -->
-          <div id="panel-projects-controls" class="panel-controls-group" title="Projects & History manager panel">
-            <div class="panel-section" title="Create a new blank document">
-              <button class="mode-select-btn" onclick="createNewProject()" style="width:100%; align-items:center; justify-content:center; padding: 12px; cursor: pointer; display: flex; flex-direction: row; gap: 6px; background: rgba(155, 81, 224, 0.05); border-color: var(--primary);">
-                <span style="font-size: 1.1rem; color: var(--primary);">➕</span>
-                <strong>New Document</strong>
-              </button>
-            </div>
-            
-            <div class="panel-section" style="flex: 1; display: flex; flex-direction: column;" title="List of saved drafts and documents">
-              <h3 class="section-title">Saved Documents</h3>
-              <div class="projects-list-container" id="projects-list-container" title="Scrollable list of drafts and files">
-                <!-- Projects populated dynamically via JS -->
               </div>
             </div>
           </div>
@@ -386,6 +379,13 @@
               <div id="editor-output-manual" class="manual-workspace-container" style="display:none;" title="Parts of speech tokens space: hover and click on words to customize synonyms">
                 <div class="placeholder-word-text centered">
                   Enter text on the left and click "ANALYZE TEXT" to identify parts of speech and swap synonyms word-by-word.
+                </div>
+              </div>
+              
+              <!-- 5. Community Reviews List (Reviews Mode) -->
+              <div id="editor-output-reviews" class="reviews-output-container" style="display:none;" title="Community Reviews & Comments List">
+                <div class="reviews-output-grid" id="reviews-list-container">
+                  <!-- Reviews populated dynamically via JS -->
                 </div>
               </div>
             </div>
