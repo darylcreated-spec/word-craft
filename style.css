@@ -164,6 +164,59 @@ body.theme-light ::-webkit-scrollbar-thumb:hover {
   letter-spacing: -0.5px;
 }
 
+.logo-tooltip-container {
+  position: relative;
+}
+
+.logo-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: absolute;
+  top: 100%;
+  left: 36px;
+  margin-top: 12px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-color);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-5px);
+  transition: all var(--transition-fast);
+  pointer-events: none;
+  box-shadow: var(--shadow-md);
+  z-index: 1000;
+}
+
+.logo-tooltip::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 14px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent rgba(15, 23, 42, 0.95) transparent;
+}
+
+.logo-tooltip-container:hover .logo-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.flag-trinidad {
+  border-radius: 1px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
 .logo-icon {
   width: 28px;
   height: 28px;
