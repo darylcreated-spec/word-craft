@@ -2186,8 +2186,12 @@ function renderProjectsList() {
     const isAct = proj.id === state.activeProjectId;
     const card = document.createElement('div');
     card.className = `project-card ${isAct ? 'active' : ''}`;
-    card.setAttribute('onclick', `loadProject('${proj.id}')`);
     card.setAttribute('title', `Click to open "${proj.title}"`);
+    
+    // Attach load listener directly to the card
+    card.addEventListener('click', () => {
+      loadProject(proj.id);
+    });
     
     const dateStr = new Date(proj.timestamp).toLocaleDateString(undefined, {
       month: 'short',
@@ -2196,7 +2200,6 @@ function renderProjectsList() {
       minute: '2-digit'
     });
     
-    // Create excerpt
     const excerpt = proj.inputContent 
       ? proj.inputContent.substring(0, 60) + (proj.inputContent.length > 60 ? '...' : '') 
       : 'Empty document';
@@ -2205,10 +2208,10 @@ function renderProjectsList() {
       <div class="project-card-header">
         <div class="project-card-title" title="${proj.title}">${proj.title}</div>
         <div class="project-card-actions">
-          <button class="project-action-btn" title="Rename Document" onclick="renameProject('${proj.id}', event)">
+          <button class="project-action-btn rename-btn" title="Rename Document">
             <svg viewBox="0 0 24 24" width="14" height="14"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor"/></svg>
           </button>
-          <button class="project-action-btn delete-btn" title="Delete Document" onclick="deleteProject('${proj.id}', event)">
+          <button class="project-action-btn delete-btn" title="Delete Document">
             <svg viewBox="0 0 24 24" width="14" height="14"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="currentColor"/></svg>
           </button>
         </div>
@@ -2216,6 +2219,24 @@ function renderProjectsList() {
       <div class="project-card-excerpt">${excerpt}</div>
       <div class="project-card-meta">Edited: ${dateStr}</div>
     `;
+    
+    // Programmatically attach action click handlers to stop propagation
+    const renameBtn = card.querySelector('.rename-btn');
+    if (renameBtn) {
+      renameBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        renameProject(proj.id);
+      });
+    }
+    
+    const deleteBtn = card.querySelector('.delete-btn');
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteProject(proj.id);
+      });
+    }
+    
     container.appendChild(card);
   });
 }
