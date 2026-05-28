@@ -99,7 +99,17 @@ async function secureFetch(url, options = {}) {
   } else if (isExtensionInstalled) {
     return fetchViaBridge(url, options);
   } else {
-    return fetch(url, options);
+    // Proxy requests through corsproxy.io or local server proxy for APIs requiring CORS bypass when extension is not running
+    if (url.includes('generativelanguage.googleapis.com')) {
+      return fetch(url, options);
+    } else if (url.includes('integrate.api.nvidia.com') && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      // Use relative path to let local http-server proxy bypass CORS
+      const relativeUrl = url.replace('https://integrate.api.nvidia.com', '');
+      return fetch(relativeUrl, options);
+    } else {
+      const proxiedUrl = `https://corsproxy.io/?url=${encodeURIComponent(url)}`;
+      return fetch(proxiedUrl, options);
+    }
   }
 }
 
@@ -1139,13 +1149,7 @@ async function craftText() {
   } catch (error) {
     audio.playError();
     let errorMsg = `[Crafting Failed] Error: ${error.message}`;
-    const isExtensionContext = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
-    const isExtensionInstalled = document.documentElement.hasAttribute('data-word-craft-extension-installed');
-    if (state.apiProvider === 'nvidia' && !isExtensionContext && !isExtensionInstalled) {
-      errorMsg += `\n\nTIP: The default API requires CORS access. Please install the Word Craft extension. You can check here for assistance: https://docs.api.nvidia.com/cloud-functions/reference/getfunctiondeployment`;
-    } else {
-      errorMsg += `\n\nPlease check your API key, connection, or model configurations in Settings.`;
-    }
+    errorMsg += `\n\nPlease check your API key, connection, or model configurations in Settings.`;
     outputArea.value = errorMsg;
   } finally {
     craftBtn.disabled = false;
@@ -2933,11 +2937,6 @@ Do not output any introductory or concluding text, explanations, or markdown. On
   } catch (error) {
     if (listDiv) {
       let errorMsg = error.message;
-      const isExtensionContext = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
-      const isExtensionInstalled = document.documentElement.hasAttribute('data-word-craft-extension-installed');
-      if (state.apiProvider === 'nvidia' && !isExtensionContext && !isExtensionInstalled) {
-        errorMsg += `<br><br><strong>TIP:</strong> The default API requires CORS access. Please install the Word Craft extension. You can check here for assistance: <a href="https://docs.api.nvidia.com/cloud-functions/reference/getfunctiondeployment" target="_blank" style="color: var(--cyan); text-decoration: underline;">https://docs.api.nvidia.com/cloud-functions/reference/getfunctiondeployment</a>`;
-      }
       listDiv.innerHTML = `
         <div class="placeholder-word-text centered" style="color: var(--danger); padding: 20px;">
           <strong>Paraphrase failed</strong>
