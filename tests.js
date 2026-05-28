@@ -3,6 +3,7 @@
 
 (function() {
   console.log("Word Craft Test Suite Initialized!");
+  const state = window.state;
 
   // Create style element for test runner UI
   const style = document.createElement('style');

@@ -45,6 +45,7 @@ const state = {
   mobileActivePane: 'input',
   isMobileSidebarOpen: false
 };
+window.state = state;
 
 // --- Initialization ---
 window.addEventListener('DOMContentLoaded', () => {
