@@ -572,6 +572,7 @@ function switchCraftType(type) {
     
     headerTitle.textContent = "Projects & History";
     craftBtnText.textContent = "NEW DOCUMENT";
+    renderProjectsList();
   }
   
   audio.playClick();
@@ -2122,7 +2123,8 @@ function loadProjectsFromStorage() {
   try {
     const data = localStorage.getItem('wc_projects');
     if (data) {
-      state.projectsList = JSON.parse(data);
+      const parsed = JSON.parse(data);
+      state.projectsList = Array.isArray(parsed) ? parsed : [];
     } else {
       state.projectsList = [];
     }
@@ -2866,4 +2868,14 @@ function applySentenceRephrase(sentenceIndex, newSentenceText) {
   renderHeatmap();
   audio.playDiscover();
 }
+
+// Expose key interaction functions globally for inline HTML event handlers
+window.createNewProject = createNewProject;
+window.loadProject = loadProject;
+window.deleteProject = deleteProject;
+window.renameProject = renameProject;
+window.toggleHeatmapView = toggleHeatmapView;
+window.openSentenceRephraseWidget = openSentenceRephraseWidget;
+window.closeSentenceRephraseWidget = closeSentenceRephraseWidget;
+window.applySentenceRephrase = applySentenceRephrase;
 
