@@ -244,7 +244,7 @@ body.theme-light .logo-icon {
   background-color: var(--bg-card);
   backdrop-filter: blur(16px);
   border-right: 1px solid var(--border-color);
-  padding: 24px;
+  padding: 24px 16px;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -257,7 +257,7 @@ body.theme-light .logo-icon {
   display: flex;
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--border-color);
-  padding: 4px;
+  padding: 2px;
   border-radius: var(--radius-md);
   margin-bottom: 8px;
 }
@@ -267,13 +267,14 @@ body.theme-light .craft-type-tabs {
 
 .craft-tab-btn {
   flex: 1;
-  padding: 8px 4px;
+  padding: 8px 2px;
   border: none;
   background: transparent;
   color: var(--text-muted);
   font-family: var(--font-sans);
   font-weight: 700;
-  font-size: 0.75rem;
+  font-size: 0.68rem;
+  letter-spacing: -0.3px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition-fast);
