@@ -1021,7 +1021,7 @@ async function craftText() {
       
       systemInstruction = `
         You are Word Craft, an expert human writer and linguistic specialist.
-        Your task is to rewrite the user's text to make it read completely human, bypassing Turnitin, GPTZero, and other AI content detectors.
+        Your task is to rewrite the user's text to make it read completely human, bypassing AI content detectors.
         Follow these strict guidelines:
         1. Maintain the exact original meaning and factual content. Do not add external facts or ignore details.
         2. Adjust the tone to: ${toneText}.
@@ -1205,7 +1205,7 @@ function runBypassAnalysis(text) {
   if (overallScore >= 80) {
     banner.classList.add('green');
     statusDom.textContent = "High Human Probability";
-    descDom.textContent = "Highly likely to bypass Turnitin, GPTZero, and other AI classifiers.";
+    descDom.textContent = "Highly likely to bypass AI classifiers.";
   } else if (overallScore >= 50) {
     banner.classList.add('amber');
     statusDom.textContent = "Moderate AI Risk";
@@ -1910,7 +1910,7 @@ function loadReviews() {
       author: "Daryl S.",
       rating: 5,
       title: "Best bypass tool on the market!",
-      comment: "This tool is a lifesaver. The manual paraphraser gives me absolute control over word choices, and the Turnitin bypass dial is spot on! Clean and offline-friendly.",
+      comment: "This tool is a lifesaver. The manual paraphraser gives me absolute control over word choices, and the AI bypass dial is spot on! Clean and offline-friendly.",
       date: "2026-05-24"
     },
     {

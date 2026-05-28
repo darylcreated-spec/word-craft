@@ -94,9 +94,9 @@
             <div class="panel-section" title="Select AI paraphrasing strategy">
               <h3 class="section-title">Crafting Mode</h3>
               <div class="mode-select-grid">
-                <button class="mode-select-btn active" id="btn-opt-humanize" title="Bypass AI: Restructure style using humanized sentence variations to clear AI check software" onclick="setEditorMode('humanize')">
-                  <strong>Bypass AI Detector</strong>
-                  <span>Humanize style to clear Turnitin</span>
+                <button class="mode-select-btn active" id="btn-opt-humanize" title="Rewrite: Restructure style using humanized sentence variations to clear AI check software" onclick="setEditorMode('humanize')">
+                  <strong>REWRITE</strong>
+                  <span>Humanize style to bypass AI classifiers</span>
                 </button>
                 <button class="mode-select-btn" id="btn-opt-grammar" title="Fix Grammar: Correct grammar rules, clean spelling typos, and optimize general flow" onclick="setEditorMode('grammar')">
                   <strong>Fix Grammar & Spelling</strong>
@@ -163,7 +163,7 @@
                 <div class="score-percentage" id="human-score-pct">99%</div>
                 <div class="score-text">
                   <strong id="human-score-status">High Human Probability</strong>
-                  <span id="human-score-desc">Highly likely to bypass Turnitin and other AI classifiers.</span>
+                  <span id="human-score-desc">Highly likely to bypass AI classifiers.</span>
                 </div>
               </div>
             </div>
@@ -420,7 +420,7 @@
         <button class="modal-close" onclick="closeSettings()">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="modal-info">Word Craft utilizes the advanced Gemini or OpenRouter APIs to perform paraphrasing, grammatical updates, and Turnitin bypass analysis.</p>
+        <p class="modal-info">Word Craft utilizes the advanced Gemini or OpenRouter APIs to perform paraphrasing, grammatical updates, and AI bypass analysis.</p>
         
         <div class="form-group">
           <label class="form-label" for="settings-provider">API Provider</label>
