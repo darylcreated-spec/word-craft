@@ -517,6 +517,7 @@ function switchMobileEditorPane(pane) {
 
 // --- Switch between AI Auto-Craft, Manual Word Craft, and Reviews ---
 function switchCraftType(type) {
+  const previousType = state.craftType;
   state.craftType = type;
   
   // Slide options panel closed on mobile
@@ -600,6 +601,20 @@ function switchCraftType(type) {
     
     headerTitle.textContent = "Manual Word Craftsman";
     craftBtnText.textContent = "ANALYZE TEXT";
+    
+    // Auto-copy AI crafted output to manual input and run analysis when switching from AI Craft to Manual Craft
+    if (previousType === 'auto') {
+      const aiOutputVal = document.getElementById('editor-output').value.trim();
+      if (aiOutputVal && !aiOutputVal.startsWith('[Crafting Failed]') && !aiOutputVal.startsWith('Translating and refining text')) {
+        const words = aiOutputVal.split(/\s+/).filter(Boolean);
+        if (words.length >= 3) {
+          const inputArea = document.getElementById('editor-input');
+          inputArea.value = aiOutputVal;
+          // Analyze automatically
+          analyzeManualText();
+        }
+      }
+    }
   } else if (type === 'reviews') {
     document.getElementById('btn-tab-reviews').classList.add('active');
     
