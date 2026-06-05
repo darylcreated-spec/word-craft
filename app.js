@@ -149,8 +149,10 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     
     const helpDropdown = document.querySelector('.help-dropdown');
-    if (helpDropdown && !e.target.closest('.help-dropdown')) {
+    const helpContent = document.querySelector('.help-dropdown-content');
+    if (helpDropdown && helpContent && !e.target.closest('.help-dropdown')) {
       helpDropdown.classList.remove('active');
+      helpContent.style.display = 'none';
     }
   });
 
@@ -3000,8 +3002,10 @@ function applySentenceRephrase(sentenceIndex, newSentenceText) {
 function toggleHelpDropdown(event) {
   if (event) event.stopPropagation();
   const dropdown = document.querySelector('.help-dropdown');
-  if (dropdown) {
-    dropdown.classList.toggle('active');
+  const content = document.querySelector('.help-dropdown-content');
+  if (dropdown && content) {
+    const isActive = dropdown.classList.toggle('active');
+    content.style.display = isActive ? 'block' : 'none';
   }
   audio.playClick();
 }
