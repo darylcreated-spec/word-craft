@@ -863,7 +863,7 @@ async function parseAndLoadFile(file) {
           try {
             const typedarray = new Uint8Array(e.target.result);
             if (window.pdfjsLib) {
-              pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+              pdfjsLib.GlobalWorkerOptions.workerSrc = 'lib/pdf.worker.min.js';
             } else {
               throw new Error("PDF.js library is not loaded.");
             }
