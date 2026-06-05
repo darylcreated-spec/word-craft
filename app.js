@@ -138,23 +138,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
   
-  // Global click listener to close floating synonym popup and help dropdown when clicking outside
-  document.addEventListener('click', (e) => {
-    const popup = document.getElementById('synonym-popup');
-    const clickedWord = e.target.classList.contains('word-span');
-    const clickedPopup = e.target.closest('#synonym-popup');
-    
-    if (!clickedWord && !clickedPopup) {
-      popup.classList.remove('active');
-    }
-    
-    const helpDropdown = document.querySelector('.help-dropdown');
-    const helpContent = document.querySelector('.help-dropdown-content');
-    if (helpDropdown && helpContent && !e.target.closest('.help-dropdown')) {
-      helpDropdown.classList.remove('active');
-      helpContent.style.display = 'none';
-    }
-  });
+
 
   // Auto-save projects when editing text
   if (editorInput) {
@@ -3020,4 +3004,22 @@ window.openSentenceRephraseWidget = openSentenceRephraseWidget;
 window.closeSentenceRephraseWidget = closeSentenceRephraseWidget;
 window.applySentenceRephrase = applySentenceRephrase;
 window.toggleHelpDropdown = toggleHelpDropdown;
+
+// Global click listener to close floating synonym popup and help dropdown when clicking outside
+window.addEventListener('click', (e) => {
+  const popup = document.getElementById('synonym-popup');
+  const clickedWord = e.target.classList.contains('word-span');
+  const clickedPopup = e.target.closest('#synonym-popup');
+  
+  if (popup && !clickedWord && !clickedPopup) {
+    popup.classList.remove('active');
+  }
+  
+  const helpDropdown = document.querySelector('.help-dropdown');
+  const helpContent = document.querySelector('.help-dropdown-content');
+  if (helpDropdown && helpContent && !e.target.closest('.help-dropdown')) {
+    helpDropdown.classList.remove('active');
+    helpContent.style.display = 'none';
+  }
+});
 
