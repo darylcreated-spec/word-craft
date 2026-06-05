@@ -713,6 +713,25 @@ function updateInputStats() {
     const mWords = state.manualTokens.filter(t => t.posGroup !== 'other').length;
     document.getElementById('output-word-count').textContent = `${mWords} words`;
   }
+
+  // Toggle pulse glow on master button when there is input but no output
+  const craftBtn = document.getElementById('btn-craft-master');
+  if (craftBtn) {
+    const hasInput = text.trim().length > 0;
+    let hasOutput = false;
+    if (state.craftType === 'auto') {
+      const outputText = document.getElementById('editor-output').value;
+      hasOutput = outputText.trim().length > 0 && !outputText.startsWith('Translating and refining');
+    } else if (state.craftType === 'manual') {
+      hasOutput = state.manualTokens.length > 0;
+    }
+    
+    if (hasInput && !hasOutput) {
+      craftBtn.classList.add('pulse-active');
+    } else {
+      craftBtn.classList.remove('pulse-active');
+    }
+  }
 }
 
 function clearEditorInput() {
