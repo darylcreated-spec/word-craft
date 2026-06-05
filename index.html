@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
   <!-- CSS Stylesheet with Cache Busting -->
-  <link rel="stylesheet" href="style.css?v=1.6.1">
+  <link rel="stylesheet" href="style.css?v=1.6.2">
 </head>
 <body class="theme-win11">
 
@@ -337,6 +337,10 @@
                   Import
                 </label>
                 <input type="file" id="docx-upload" accept=".docx,.txt,.pdf" style="display:none;" onchange="handleFileUpload(event)">
+                <button class="pane-action-btn" id="btn-voice-dictate" onclick="toggleDictation()" title="Voice Dictation (Speech to Text): Speak to type into the input area">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="display: inline-block; vertical-align: middle;"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+                  <span>Dictate</span>
+                </button>
                 <button class="pane-action-btn text-danger" title="Clear all text in the original input field" onclick="clearEditorInput()">Clear</button>
               </div>
             </div>
@@ -378,6 +382,10 @@
                 <button class="pane-action-btn" id="btn-toggle-diff" onclick="toggleDiffView()" title="Compare original and crafted text with red and green word highlights">Changes</button>
                 <button class="pane-action-btn" onclick="copyCraftedText()" title="Copy crafted output as plain text to clipboard">Copy</button>
                 <button class="pane-action-btn" onclick="exportCraftedText()" title="Export output text as a .txt file">Export</button>
+                <button class="pane-action-btn" id="btn-voice-read" onclick="toggleSpeech()" title="Read Aloud (Text to Speech): Listen to the crafted output text">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="display: inline-block; vertical-align: middle;"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                  <span>Read</span>
+                </button>
                 <button class="pane-action-btn text-danger" onclick="clearCraftedOutput()" title="Clear output text">Clear</button>
               </div>
               
@@ -392,6 +400,10 @@
                 <button class="pane-action-btn" onclick="syncManualToInput()" title="Sync manual text modifications back to the original input editor pane">Apply Edits</button>
                 <button class="pane-action-btn" onclick="copyManualText()" title="Copy manual mode crafted text as plain text to clipboard">Copy</button>
                 <button class="pane-action-btn" onclick="exportCraftedText()" title="Export manual mode text as a .txt file">Export</button>
+                <button class="pane-action-btn" id="btn-manual-voice-read" onclick="toggleSpeechManual()" title="Read Aloud (Text to Speech): Listen to the manual output text">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="display: inline-block; vertical-align: middle;"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                  <span>Read</span>
+                </button>
                 <button class="pane-action-btn text-danger" onclick="clearCraftedOutput()" title="Clear manual mode output text">Clear</button>
               </div>
             </div>
@@ -599,7 +611,7 @@
   <script src="config.js?v=1.6.1"></script>
   <script src="sound.js?v=1.6.1"></script>
   <script src="docx-reader.js?v=1.6.1"></script>
-  <script src="app.js?v=1.6.1"></script>
+  <script src="app.js?v=1.6.2"></script>
   <script>
     if (window.location.search.includes('test=true')) {
       const script = document.createElement('script');

@@ -41,6 +41,10 @@ const state = {
   activeProjectId: null,
   showHeatmap: false,
   
+  // Voice & Speech States
+  isRecording: false,
+  isSpeaking: false,
+  
   // Mobile Responsive States
   mobileActivePane: 'input',
   isMobileSidebarOpen: false
@@ -3013,6 +3017,195 @@ function toggleHelpDropdown(event) {
   audio.playClick();
 }
 
+// --- VOICE DICTATION (STT) & TEXT-TO-SPEECH (TTS) LOGIC ---
+let recognition = null;
+let dictationInitialText = "";
+
+function toggleDictation() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert("Speech recognition is not supported in this browser. Please try Chrome, Edge, or Safari.");
+    return;
+  }
+
+  const btn = document.getElementById('btn-voice-dictate');
+  const btnText = btn ? btn.querySelector('span') : null;
+  const inputArea = document.getElementById('editor-input');
+
+  if (state.isRecording) {
+    stopDictation();
+    return;
+  }
+
+  // Stop any ongoing speech reading when starting dictation
+  if (state.isSpeaking) {
+    stopSpeech();
+  }
+
+  if (!recognition) {
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => {
+      state.isRecording = true;
+      dictationInitialText = inputArea.value;
+      if (btn) btn.classList.add('recording-active');
+      if (btnText) btnText.textContent = "Listening...";
+      audio.playClick();
+    };
+
+    recognition.onresult = (event) => {
+      let interimTranscript = '';
+      let cumulativeFinal = '';
+
+      for (let i = 0; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          cumulativeFinal += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+
+      let spacer = '';
+      if (dictationInitialText && !dictationInitialText.endsWith(' ') && (cumulativeFinal || interimTranscript)) {
+        spacer = ' ';
+      }
+
+      inputArea.value = dictationInitialText + spacer + cumulativeFinal + interimTranscript;
+      updateInputStats();
+      autoSaveCurrentProject();
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+      if (event.error === 'not-allowed') {
+        alert("Microphone permission denied. Please allow microphone access in your browser settings.");
+      }
+      stopDictation();
+    };
+
+    recognition.onend = () => {
+      state.isRecording = false;
+      if (btn) btn.classList.remove('recording-active');
+      if (btnText) btnText.textContent = "Dictate";
+    };
+  }
+
+  recognition.start();
+}
+
+function stopDictation() {
+  if (recognition) {
+    recognition.stop();
+  }
+  state.isRecording = false;
+  const btn = document.getElementById('btn-voice-dictate');
+  const btnText = btn ? btn.querySelector('span') : null;
+  if (btn) btn.classList.remove('recording-active');
+  if (btnText) btnText.textContent = "Dictate";
+}
+
+let currentUtterance = null;
+
+function stopSpeech() {
+  if (window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+  }
+  state.isSpeaking = false;
+
+  // Reset auto read button
+  const btnAuto = document.getElementById('btn-voice-read');
+  if (btnAuto) {
+    btnAuto.classList.remove('speaking-active');
+    const span = btnAuto.querySelector('span');
+    if (span) span.textContent = "Read";
+  }
+
+  // Reset manual read button
+  const btnManual = document.getElementById('btn-manual-voice-read');
+  if (btnManual) {
+    btnManual.classList.remove('speaking-active');
+    const span = btnManual.querySelector('span');
+    if (span) span.textContent = "Read";
+  }
+}
+
+function toggleSpeech() {
+  if (state.isSpeaking) {
+    stopSpeech();
+    return;
+  }
+
+  const text = document.getElementById('editor-output').value.trim();
+  if (!text) return;
+
+  // Stop dictation if running
+  if (state.isRecording) {
+    stopDictation();
+  }
+
+  speakText(text, 'btn-voice-read');
+}
+
+function toggleSpeechManual() {
+  if (state.isSpeaking) {
+    stopSpeech();
+    return;
+  }
+
+  let text = "";
+  if (state.manualTokens && state.manualTokens.length > 0) {
+    state.manualTokens.forEach(t => {
+      text += (t.pre || '') + t.text + (t.post || '');
+    });
+  }
+  text = text.trim();
+
+  if (!text) return;
+
+  // Stop dictation if running
+  if (state.isRecording) {
+    stopDictation();
+  }
+
+  speakText(text, 'btn-manual-voice-read');
+}
+
+function speakText(text, buttonId) {
+  stopSpeech(); // ensure clean state
+
+  if (!window.speechSynthesis) {
+    alert("Text-to-speech is not supported in this browser.");
+    return;
+  }
+
+  const btn = document.getElementById(buttonId);
+  const btnText = btn ? btn.querySelector('span') : null;
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  currentUtterance = utterance;
+
+  utterance.onstart = () => {
+    state.isSpeaking = true;
+    if (btn) btn.classList.add('speaking-active');
+    if (btnText) btnText.textContent = "Stop";
+    audio.playClick();
+  };
+
+  utterance.onend = () => {
+    stopSpeech();
+  };
+
+  utterance.onerror = (e) => {
+    console.error("Speech synthesis error:", e);
+    stopSpeech();
+  };
+
+  window.speechSynthesis.speak(utterance);
+}
+
 // Expose key interaction functions globally for inline HTML event handlers
 window.createNewProject = createNewProject;
 window.loadProject = loadProject;
@@ -3023,6 +3216,11 @@ window.openSentenceRephraseWidget = openSentenceRephraseWidget;
 window.closeSentenceRephraseWidget = closeSentenceRephraseWidget;
 window.applySentenceRephrase = applySentenceRephrase;
 window.toggleHelpDropdown = toggleHelpDropdown;
+window.toggleDictation = toggleDictation;
+window.stopDictation = stopDictation;
+window.toggleSpeech = toggleSpeech;
+window.toggleSpeechManual = toggleSpeechManual;
+window.stopSpeech = stopSpeech;
 
 // Global click listener to close floating synonym popup and help dropdown when clicking outside
 window.addEventListener('click', (e) => {
