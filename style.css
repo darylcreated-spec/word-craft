@@ -2059,7 +2059,7 @@ body.theme-light .pane-footer {
   border-color: transparent transparent rgba(15, 23, 42, 0.96) transparent;
 }
 
-.help-dropdown:hover .help-dropdown-content {
+.help-dropdown.active .help-dropdown-content {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);

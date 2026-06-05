@@ -138,7 +138,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
   
-  // Global click listener to close floating synonym popup when clicking outside
+  // Global click listener to close floating synonym popup and help dropdown when clicking outside
   document.addEventListener('click', (e) => {
     const popup = document.getElementById('synonym-popup');
     const clickedWord = e.target.classList.contains('word-span');
@@ -146,6 +146,11 @@ window.addEventListener('DOMContentLoaded', () => {
     
     if (!clickedWord && !clickedPopup) {
       popup.classList.remove('active');
+    }
+    
+    const helpDropdown = document.querySelector('.help-dropdown');
+    if (helpDropdown && !e.target.closest('.help-dropdown')) {
+      helpDropdown.classList.remove('active');
     }
   });
 
@@ -2992,6 +2997,15 @@ function applySentenceRephrase(sentenceIndex, newSentenceText) {
   audio.playDiscover();
 }
 
+function toggleHelpDropdown(event) {
+  if (event) event.stopPropagation();
+  const dropdown = document.querySelector('.help-dropdown');
+  if (dropdown) {
+    dropdown.classList.toggle('active');
+  }
+  audio.playClick();
+}
+
 // Expose key interaction functions globally for inline HTML event handlers
 window.createNewProject = createNewProject;
 window.loadProject = loadProject;
@@ -3001,4 +3015,5 @@ window.toggleHeatmapView = toggleHeatmapView;
 window.openSentenceRephraseWidget = openSentenceRephraseWidget;
 window.closeSentenceRephraseWidget = closeSentenceRephraseWidget;
 window.applySentenceRephrase = applySentenceRephrase;
+window.toggleHelpDropdown = toggleHelpDropdown;
 
