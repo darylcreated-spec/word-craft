@@ -1929,7 +1929,7 @@ function clearCraftedOutput() {
 function loadReviews() {
   const defaultReviews = [
     {
-      author: "Daryl S.",
+      author: "Daryl M.",
       rating: 5,
       title: "Best bypass tool on the market!",
       comment: "This tool is a lifesaver. The manual paraphraser gives me absolute control over word choices, and the AI bypass dial is spot on! Clean and offline-friendly.",
