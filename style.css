@@ -2213,3 +2213,108 @@ body.theme-light .help-warning-box {
   border-color: var(--cyan) !important;
   animation: speakReadPulse 1.5s infinite;
 }
+
+/* Output Option Tabs Bar Styles */
+.output-tabs-bar {
+  display: flex;
+  background: rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 16px;
+  height: 34px;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  overflow-x: auto;
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+}
+
+.output-tabs-bar::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for Chrome/Safari/Edge */
+}
+
+.output-tab-wrapper {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  height: 24px;
+  transition: all var(--transition-fast);
+  box-sizing: border-box;
+}
+
+.output-tab-wrapper:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-color-focus);
+}
+
+.output-tab-wrapper.active {
+  background: rgba(0, 240, 255, 0.05);
+  border-color: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan-glow);
+}
+
+.output-tab-btn {
+  height: 100%;
+  padding: 0 8px 0 10px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: color var(--transition-fast);
+}
+
+.output-tab-wrapper.active .output-tab-btn {
+  color: var(--cyan);
+}
+
+.output-tab-wrapper:hover .output-tab-btn {
+  color: var(--text-main);
+}
+
+.output-tab-close {
+  height: 100%;
+  width: 20px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top-right-radius: var(--radius-sm);
+  border-bottom-right-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  padding: 0;
+}
+
+.output-tab-close:hover {
+  background: rgba(255, 71, 87, 0.15);
+  color: #ff4757;
+}
+
+body.theme-light .output-tabs-bar {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+body.theme-light .output-tab-wrapper {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+body.theme-light .output-tab-wrapper.active {
+  background: rgba(0, 120, 212, 0.05);
+  border-color: var(--primary);
+  box-shadow: 0 0 8px var(--primary-glow);
+}
+
+body.theme-light .output-tab-wrapper.active .output-tab-btn {
+  color: var(--primary);
+}

@@ -409,6 +409,8 @@
                 <button class="pane-action-btn text-danger" onclick="clearCraftedOutput()" title="Clear manual mode output text">Clear</button>
               </div>
             </div>
+            <!-- Output Option Tabs -->
+            <div class="output-tabs-bar" id="output-tabs-bar" style="display: none;"></div>
             <div class="editor-body" title="Result output content viewer box">
               <!-- 1. Plain text text editor (Auto Mode) -->
               <textarea id="editor-output" readonly title="Rewritten output draft" placeholder="Your crafted text will appear here..."></textarea>
@@ -613,7 +615,7 @@
   <script src="config.js?v=1.6.1"></script>
   <script src="sound.js?v=1.6.1"></script>
   <script src="docx-reader.js?v=1.6.1"></script>
-  <script src="app.js?v=1.6.4"></script>
+  <script src="app.js?v=1.6.5"></script>
   <script>
     if (window.location.search.includes('test=true')) {
       const script = document.createElement('script');

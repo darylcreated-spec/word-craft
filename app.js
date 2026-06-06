@@ -44,6 +44,8 @@ const state = {
   // Voice & Speech States
   isRecording: false,
   isSpeaking: false,
+  craftedOptions: [],
+  activeOptionId: null,
   
   // Mobile Responsive States
   mobileActivePane: 'input',
@@ -1150,12 +1152,28 @@ async function craftText() {
     // Strip all emoji characters from output response
     cleanText = cleanText.replace(/\p{Extended_Pictographic}/gu, '');
 
+    // Add new option to list
+    const newOptId = 'opt_' + Date.now();
+    const modeLabel = state.editorMode === 'humanize' ? 'Humanize' : (state.editorMode === 'grammar' ? 'Grammar' : 'Paraphrase');
+    const toneLabel = state.editorTone.substring(0, 4).toUpperCase();
+    const optCount = state.craftedOptions.length + 1;
+    const newOption = {
+      id: newOptId,
+      title: `Result ${optCount} (${modeLabel}-${toneLabel})`,
+      content: cleanText
+    };
+    state.craftedOptions.push(newOption);
+    state.activeOptionId = newOptId;
+
+    // Render tabs
+    renderOutputTabs();
+
     outputArea.value = cleanText;
     
     // Push successful craft to history
     pushAutoHistory(cleanText);
     
-    const outWordCount = cleanText.split(/\s+/).length;
+    const outWordCount = cleanText.split(/\s+/).filter(Boolean).length;
     document.getElementById('output-word-count').textContent = `${outWordCount} words`;
     
     runBypassAnalysis(cleanText);
@@ -1888,6 +1906,12 @@ function copyManualText() {
 function clearCraftedOutput() {
   audio.playClick();
   
+  // Clear Crafted Options
+  state.craftedOptions = [];
+  state.activeOptionId = null;
+  renderOutputTabs();
+  stopSpeech();
+
   // Clear Auto Mode Output and Diff
   const outputArea = document.getElementById('editor-output');
   if (outputArea) outputArea.value = '';
@@ -2271,7 +2295,28 @@ function loadProjectsFromStorage() {
   const activeProj = state.projectsList.find(p => p.id === state.activeProjectId);
   if (activeProj) {
     document.getElementById('editor-input').value = activeProj.inputContent;
-    document.getElementById('editor-output').value = activeProj.outputContent;
+    
+    if (activeProj.craftedOptions && Array.isArray(activeProj.craftedOptions)) {
+      state.craftedOptions = activeProj.craftedOptions;
+      state.activeOptionId = activeProj.activeOptionId !== undefined ? activeProj.activeOptionId : (state.craftedOptions.length > 0 ? state.craftedOptions[0].id : null);
+    } else {
+      if (activeProj.outputContent) {
+        const optId = 'opt_' + Date.now();
+        state.craftedOptions = [{
+          id: optId,
+          title: 'Result 1 (Imported)',
+          content: activeProj.outputContent
+        }];
+        state.activeOptionId = optId;
+      } else {
+        state.craftedOptions = [];
+        state.activeOptionId = null;
+      }
+    }
+    
+    renderOutputTabs();
+    const activeOpt = state.craftedOptions.find(o => o.id === state.activeOptionId);
+    document.getElementById('editor-output').value = activeOpt ? activeOpt.content : '';
   }
   
   renderProjectsList();
@@ -2355,17 +2400,168 @@ function renderProjectsList() {
   });
 }
 
+function renderOutputTabs() {
+  const tabsBar = document.getElementById('output-tabs-bar');
+  if (!tabsBar) return;
+  
+  if (!state.craftedOptions || state.craftedOptions.length === 0) {
+    tabsBar.style.display = 'none';
+    return;
+  }
+  
+  tabsBar.style.display = 'flex';
+  tabsBar.innerHTML = '';
+  
+  state.craftedOptions.forEach(opt => {
+    const isAct = opt.id === state.activeOptionId;
+    const wrapper = document.createElement('div');
+    wrapper.className = `output-tab-wrapper ${isAct ? 'active' : ''}`;
+    
+    // Tab Select Button
+    const btn = document.createElement('button');
+    btn.className = 'output-tab-btn';
+    btn.textContent = opt.title;
+    btn.onclick = () => switchOutputTab(opt.id);
+    
+    // Tab Close Button
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'output-tab-close';
+    closeBtn.innerHTML = '&times;';
+    closeBtn.title = "Dismiss Result";
+    closeBtn.onclick = (e) => {
+      e.stopPropagation();
+      closeOutputTab(opt.id);
+    };
+    
+    wrapper.appendChild(btn);
+    wrapper.appendChild(closeBtn);
+    tabsBar.appendChild(wrapper);
+  });
+}
+
+function switchOutputTab(id) {
+  // Cancel active speech reading
+  if (state.isSpeaking) {
+    stopSpeech();
+  }
+  
+  state.activeOptionId = id;
+  const activeOpt = state.craftedOptions.find(o => o.id === id);
+  const text = activeOpt ? activeOpt.content : '';
+  
+  // Set textarea content
+  document.getElementById('editor-output').value = text;
+  
+  // Update Word Count
+  const outWordCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+  document.getElementById('output-word-count').textContent = `${outWordCount} words`;
+  
+  // Re-run bypass analysis, diff, and heatmap views as needed
+  runBypassAnalysis(text);
+  
+  if (state.showDiff) {
+    const original = document.getElementById('editor-input').value;
+    document.getElementById('editor-output-diff').innerHTML = computeDiffHTML(original, text);
+  }
+  
+  if (state.showHeatmap) {
+    renderHeatmap();
+  }
+  
+  // Re-render tabs
+  renderOutputTabs();
+  
+  // Auto-save the active project tab state
+  autoSaveCurrentProject();
+  
+  audio.playClick();
+}
+
+function closeOutputTab(id) {
+  audio.playClick();
+  
+  const idx = state.craftedOptions.findIndex(o => o.id === id);
+  if (idx === -1) return;
+  
+  // Remove option from list
+  state.craftedOptions.splice(idx, 1);
+  
+  // Determine next active tab if we closed the currently active one
+  if (state.activeOptionId === id) {
+    if (state.craftedOptions.length > 0) {
+      // Switch to nearest tab: same index (if it exists) or the last tab
+      const nextIdx = Math.min(idx, state.craftedOptions.length - 1);
+      state.activeOptionId = state.craftedOptions[nextIdx].id;
+      
+      // Load content of new active tab
+      const activeOpt = state.craftedOptions[nextIdx];
+      document.getElementById('editor-output').value = activeOpt.content;
+      
+      // Update Word Count
+      const text = activeOpt.content;
+      const outWordCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+      document.getElementById('output-word-count').textContent = `${outWordCount} words`;
+      
+      runBypassAnalysis(text);
+      if (state.showDiff) {
+        const original = document.getElementById('editor-input').value;
+        document.getElementById('editor-output-diff').innerHTML = computeDiffHTML(original, text);
+      }
+      if (state.showHeatmap) {
+        renderHeatmap();
+      }
+    } else {
+      state.activeOptionId = null;
+      // No tabs left: reset output pane to placeholder state
+      document.getElementById('editor-output').value = '';
+      const diffOutput = document.getElementById('editor-output-diff');
+      if (diffOutput) diffOutput.innerHTML = '';
+      const heatmapOutput = document.getElementById('editor-output-heatmap');
+      if (heatmapOutput) {
+        heatmapOutput.innerHTML = `
+          <div class="placeholder-word-text centered">
+            No output text to scan. Please craft some text first.
+          </div>
+        `;
+      }
+      document.getElementById('output-word-count').textContent = '0 words';
+      
+      // Reset Turnitin dials
+      updateDial('dial-perplexity', 0);
+      updateDial('dial-burstiness', 0);
+      const banner = document.getElementById('ai-score-banner');
+      if (banner) {
+        banner.className = 'ai-score-banner';
+        document.getElementById('human-score-pct').textContent = '0%';
+        document.getElementById('human-score-status').textContent = 'AI Likelihood Scan';
+        document.getElementById('human-score-desc').textContent = 'Highly automated or uniform structures detected. Run Scan or Humanize.';
+      }
+    }
+  }
+  
+  // Re-render tabs and save projects
+  renderOutputTabs();
+  autoSaveCurrentProject();
+}
+
 function createNewProject() {
   const newProj = {
     id: 'proj_' + Date.now(),
     title: 'New Draft ' + (state.projectsList.length + 1),
     inputContent: '',
     outputContent: '',
+    craftedOptions: [],
+    activeOptionId: null,
     timestamp: Date.now()
   };
   
   state.projectsList.push(newProj);
   state.activeProjectId = newProj.id;
+  
+  state.craftedOptions = [];
+  state.activeOptionId = null;
+  renderOutputTabs();
+  
   saveProjectsToStorage();
   
   // Clear inputs
@@ -2387,10 +2583,32 @@ function loadProject(id) {
   if (!proj) return;
   
   state.activeProjectId = id;
-  saveProjectsToStorage();
   
   document.getElementById('editor-input').value = proj.inputContent;
-  document.getElementById('editor-output').value = proj.outputContent;
+  
+  if (proj.craftedOptions && Array.isArray(proj.craftedOptions)) {
+    state.craftedOptions = proj.craftedOptions;
+    state.activeOptionId = proj.activeOptionId !== undefined ? proj.activeOptionId : (state.craftedOptions.length > 0 ? state.craftedOptions[0].id : null);
+  } else {
+    if (proj.outputContent) {
+      const optId = 'opt_' + Date.now();
+      state.craftedOptions = [{
+        id: optId,
+        title: 'Result 1 (Imported)',
+        content: proj.outputContent
+      }];
+      state.activeOptionId = optId;
+    } else {
+      state.craftedOptions = [];
+      state.activeOptionId = null;
+    }
+  }
+  
+  renderOutputTabs();
+  const activeOpt = state.craftedOptions.find(o => o.id === state.activeOptionId);
+  document.getElementById('editor-output').value = activeOpt ? activeOpt.content : '';
+  
+  saveProjectsToStorage();
   
   // Clear diff view and manual tags
   const diffOutput = document.getElementById('editor-output-diff');
@@ -2431,7 +2649,28 @@ function deleteProject(id, event) {
     state.activeProjectId = state.projectsList[0].id;
     const proj = state.projectsList[0];
     document.getElementById('editor-input').value = proj.inputContent;
-    document.getElementById('editor-output').value = proj.outputContent;
+    
+    if (proj.craftedOptions && Array.isArray(proj.craftedOptions)) {
+      state.craftedOptions = proj.craftedOptions;
+      state.activeOptionId = proj.activeOptionId !== undefined ? proj.activeOptionId : (state.craftedOptions.length > 0 ? state.craftedOptions[0].id : null);
+    } else {
+      if (proj.outputContent) {
+        const optId = 'opt_' + Date.now();
+        state.craftedOptions = [{
+          id: optId,
+          title: 'Result 1 (Imported)',
+          content: proj.outputContent
+        }];
+        state.activeOptionId = optId;
+      } else {
+        state.craftedOptions = [];
+        state.activeOptionId = null;
+      }
+    }
+    
+    renderOutputTabs();
+    const activeOpt = state.craftedOptions.find(o => o.id === state.activeOptionId);
+    document.getElementById('editor-output').value = activeOpt ? activeOpt.content : '';
   }
   
   saveProjectsToStorage();
@@ -2472,10 +2711,28 @@ function autoSaveCurrentProject() {
   const inputVal = document.getElementById('editor-input').value;
   const outputVal = document.getElementById('editor-output').value;
   
+  // Sync outputVal to the active crafted option if one is selected
+  if (state.activeOptionId) {
+    const activeOpt = state.craftedOptions.find(o => o.id === state.activeOptionId);
+    if (activeOpt && activeOpt.content !== outputVal) {
+      activeOpt.content = outputVal;
+    }
+  }
+  
+  const craftedOptionsStr = JSON.stringify(state.craftedOptions);
+  const projCraftedOptionsStr = JSON.stringify(proj.craftedOptions || []);
+  
   // Only save if there is an actual change
-  if (proj.inputContent !== inputVal || proj.outputContent !== outputVal) {
+  if (
+    proj.inputContent !== inputVal || 
+    proj.outputContent !== outputVal ||
+    craftedOptionsStr !== projCraftedOptionsStr ||
+    proj.activeOptionId !== state.activeOptionId
+  ) {
     proj.inputContent = inputVal;
     proj.outputContent = outputVal;
+    proj.craftedOptions = JSON.parse(craftedOptionsStr);
+    proj.activeOptionId = state.activeOptionId;
     proj.timestamp = Date.now();
     saveProjectsToStorage();
     
@@ -3221,6 +3478,8 @@ window.stopDictation = stopDictation;
 window.toggleSpeech = toggleSpeech;
 window.toggleSpeechManual = toggleSpeechManual;
 window.stopSpeech = stopSpeech;
+window.switchOutputTab = switchOutputTab;
+window.closeOutputTab = closeOutputTab;
 
 // Global click listener to close floating synonym popup and help dropdown when clicking outside
 window.addEventListener('click', (e) => {

@@ -170,7 +170,8 @@
     { id: 'dict', label: '4. Inline Dictionary Lookup & Fallback' },
     { id: 'export', label: '5. Rich Text Copy & Document Export' },
     { id: 'heatmap', label: '6. Sentence AI Heat Map Rendering' },
-    { id: 'rephrase', label: '7. Sentence-Level Paraphraser Modal' }
+    { id: 'rephrase', label: '7. Sentence-Level Paraphraser Modal' },
+    { id: 'tabs', label: '8. Dynamic Output Result Tabs' }
   ];
 
   const stepsList = document.getElementById('test-steps-list');
@@ -570,6 +571,96 @@
       toggleHeatmapView();
       
       setStepState('rephrase', 'passed', 'Sentence replaced inline successfully');
+      passedCount++;
+      updateProgress(passedCount, steps.length);
+      await delay(600);
+      
+      // -------------------------------------------------------------
+      // TEST 8: DYNAMIC OUTPUT RESULT TABS
+      // -------------------------------------------------------------
+      setStepState('tabs', 'active');
+      await delay(600);
+      
+      // Clear crafted options first
+      state.craftedOptions = [];
+      state.activeOptionId = null;
+      renderOutputTabs();
+      
+      // Add two mocked options
+      const opt1 = { id: 'test_opt_1', title: 'Result 1 (HUM-PRO)', content: 'This is the first humanized output.' };
+      const opt2 = { id: 'test_opt_2', title: 'Result 2 (PAR-ACAD)', content: 'This is the second paraphrased output.' };
+      state.craftedOptions.push(opt1, opt2);
+      state.activeOptionId = opt1.id;
+      
+      renderOutputTabs();
+      await delay(500);
+      
+      const tabsBar = document.getElementById('output-tabs-bar');
+      if (tabsBar.style.display === 'none') {
+        throw new Error("Result tabs bar did not display when options were added");
+      }
+      
+      const tabWrappers = tabsBar.querySelectorAll('.output-tab-wrapper');
+      if (tabWrappers.length !== 2) {
+        throw new Error(`Expected 2 tabs, found ${tabWrappers.length}`);
+      }
+      
+      if (!tabWrappers[0].classList.contains('active')) {
+        throw new Error("First tab is not active initially");
+      }
+      
+      // Switch to tab 2 virtually
+      const tab2Btn = tabWrappers[1].querySelector('.output-tab-btn');
+      tab2Btn.click();
+      await delay(600);
+      
+      if (state.activeOptionId !== opt2.id) {
+        throw new Error("Active option ID did not update on tab switch click");
+      }
+      
+      if (document.getElementById('editor-output').value !== opt2.content) {
+        throw new Error("Editor output textarea value did not update on tab switch");
+      }
+      
+      // Close tab 2 virtually (the active one)
+      const tab2Close = tabWrappers[1].querySelector('.output-tab-close');
+      tab2Close.click();
+      await delay(600);
+      
+      if (state.craftedOptions.length !== 1) {
+        throw new Error("Close tab failed to remove option from list");
+      }
+      
+      if (state.activeOptionId !== opt1.id) {
+        throw new Error("Focus did not shift to adjacent tab after active tab closed");
+      }
+      
+      if (document.getElementById('editor-output').value !== opt1.content) {
+        throw new Error("Editor output textarea value did not update back to opt1 after closing opt2");
+      }
+      
+      // Close last tab virtually
+      const tab1Close = tabsBar.querySelector('.output-tab-close');
+      tab1Close.click();
+      await delay(600);
+      
+      if (state.craftedOptions.length !== 0) {
+        throw new Error("Closing last tab failed to empty crafted options");
+      }
+      
+      if (state.activeOptionId !== null) {
+        throw new Error("activeOptionId was not set to null after closing all tabs");
+      }
+      
+      if (document.getElementById('editor-output').value !== '') {
+        throw new Error("Editor output textarea was not cleared after closing all tabs");
+      }
+      
+      if (tabsBar.style.display !== 'none') {
+        throw new Error("Tabs bar did not hide after closing all tabs");
+      }
+      
+      setStepState('tabs', 'passed', 'Dynamic tab creation, switching, dismissal, and fallback verified');
       passedCount++;
       updateProgress(passedCount, steps.length);
       
