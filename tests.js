@@ -581,7 +581,8 @@
       setStepState('tabs', 'active');
       await delay(600);
       
-      // Clear crafted options first
+      // Switch to auto mode and clear crafted options first
+      switchCraftType('auto');
       state.craftedOptions = [];
       state.activeOptionId = null;
       renderOutputTabs();
@@ -589,13 +590,13 @@
       // Add two mocked options
       const opt1 = { 
         id: 'test_opt_1', 
-        title: 'Result 1 (HUM-PRO)', 
+        title: 'Result 1', 
         settings: { mode: 'humanize', tone: 'professional', strength: 3, preserveFormat: true, registerLock: false },
         content: 'This is the first humanized output.' 
       };
       const opt2 = { 
         id: 'test_opt_2', 
-        title: 'Result 2 (PAR-ACAD)', 
+        title: 'Result 2', 
         settings: { mode: 'paraphrase', tone: 'academic', preserveFormat: false, registerLock: true },
         content: 'This is the second paraphrased output.' 
       };

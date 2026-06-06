@@ -659,6 +659,7 @@ function switchCraftType(type) {
   }
   
   audio.playClick();
+  renderOutputTabs();
   updateInputStats();
 }
 
@@ -1168,7 +1169,7 @@ async function craftText() {
     
     const newOption = {
       id: newOptId,
-      title: `Result ${optCount} (${modeLabel}-${toneLabel})`,
+      title: `Result ${optCount}`,
       settings: settingsObj,
       content: cleanText
     };
@@ -2316,7 +2317,7 @@ function loadProjectsFromStorage() {
         const optId = 'opt_' + Date.now();
         state.craftedOptions = [{
           id: optId,
-          title: 'Result 1 (Imported)',
+          title: 'Result 1',
           settings: null,
           content: activeProj.outputContent
         }];
@@ -2458,7 +2459,7 @@ function renderOutputTabs() {
   const tabsBar = document.getElementById('output-tabs-bar');
   if (!tabsBar) return;
   
-  if (!state.craftedOptions || state.craftedOptions.length === 0) {
+  if (state.craftType !== 'auto' || !state.craftedOptions || state.craftedOptions.length === 0) {
     tabsBar.style.display = 'none';
     return;
   }
@@ -2671,7 +2672,7 @@ function loadProject(id) {
       const optId = 'opt_' + Date.now();
       state.craftedOptions = [{
         id: optId,
-        title: 'Result 1 (Imported)',
+        title: 'Result 1',
         settings: null,
         content: proj.outputContent
       }];
@@ -2747,7 +2748,7 @@ function deleteProject(id, event) {
         const optId = 'opt_' + Date.now();
         state.craftedOptions = [{
           id: optId,
-          title: 'Result 1 (Imported)',
+          title: 'Result 1',
           settings: null,
           content: proj.outputContent
         }];
