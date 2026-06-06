@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
   <!-- CSS Stylesheet with Cache Busting -->
-  <link rel="stylesheet" href="style.css?v=1.6.8">
+  <link rel="stylesheet" href="style.css?v=1.6.9">
 </head>
 <body class="theme-win11">
 
@@ -44,7 +44,7 @@
             <span>GUIDE</span>
           </button>
           <div class="help-dropdown-content" style="display: none;">
-            <img src="user_guide_infographic.jpg" alt="Word Craft User Guide Infographic" class="help-infographic">
+            <img src="user_guide_infographic.jpg" alt="Word Craft User Guide Infographic" class="help-infographic" onclick="openImageLightbox()" style="cursor: pointer;" title="Click to view full size">
             <div class="help-section-title">WORDCRAFT USER GUIDE</div>
             <p class="help-intro">
               Word Craft is a versatile digital platform designed to help users refine their writing through a blend of automated AI tools and manual editing features. The software offers a "Humanize" function to adjust the tone of a draft, alongside an AI scanner that evaluates how likely the text is to be flagged by detection algorithms. Writers can also utilize a manual mode to break down sentence mechanics, allowing them to swap individual words for synonyms based on specific parts of speech. To power these transformations, the tool integrates with external APIs such as Gemini or OpenRouter, ensuring that data is processed through secure, high-performance models. Ultimately, while the system provides advanced paraphrasing and styling options, it emphasizes that original human authorship remains the most effective way to ensure authenticity.
@@ -637,6 +637,14 @@
     </div>
   </div>
 
+  <!-- MODAL: Image Lightbox -->
+  <div class="modal-backdrop" id="modal-image-lightbox" onclick="closeImageLightbox(event)">
+    <div class="modal-card" style="width: auto; max-width: 95vw; background: transparent; border: none; box-shadow: none; display: flex; justify-content: center; align-items: center; position: relative;" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeImageLightbox(event)" style="position: absolute; top: 12px; right: 20px; font-size: 2.8rem; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.8); z-index: 1010; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8">&times;</button>
+      <img src="user_guide_infographic.jpg" alt="Word Craft Infographic Full" style="max-width: 100%; max-height: 90vh; border-radius: var(--radius-md); box-shadow: var(--shadow-lg), 0 0 30px rgba(0,240,255,0.2); border: 1px solid rgba(255, 255, 255, 0.15); display: block;">
+    </div>
+  </div>
+
   <!-- Scripts with Cache Busting -->
   <script src="lib/pdf.min.js?v=1.6.6"></script>
   <script src="lib/mammoth.browser.min.js?v=1.6.6"></script>
@@ -655,6 +663,26 @@
       const btn = document.querySelector('.help-dropdown-btn');
       if (btn) btn.click();
     }
+    if (window.location.search.includes('open_lightbox=true')) {
+      openImageLightbox();
+    }
+    function openImageLightbox() {
+      const modal = document.getElementById('modal-image-lightbox');
+      if (modal) {
+        modal.classList.add('active');
+        if (window.audio && typeof window.audio.playClick === 'function') window.audio.playClick();
+      }
+    }
+    function closeImageLightbox(e) {
+      if (e) e.stopPropagation();
+      const modal = document.getElementById('modal-image-lightbox');
+      if (modal) {
+        modal.classList.remove('active');
+        if (window.audio && typeof window.audio.playClick === 'function') window.audio.playClick();
+      }
+    }
+    window.openImageLightbox = openImageLightbox;
+    window.closeImageLightbox = closeImageLightbox;
   </script>
 </body>
 </html>
