@@ -2040,16 +2040,16 @@ body.theme-light .pane-footer {
   top: 100%;
   left: 0;
   margin-top: 10px;
-  width: 380px;
+  width: 420px;
   max-width: calc(100vw - 32px);
-  max-height: min(550px, 75vh);
+  max-height: min(580px, 80vh);
   overflow-y: auto;
-  background: rgba(15, 23, 42, 0.96);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color);
+  background: rgba(10, 15, 30, 0.98);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg), 0 0 20px rgba(0, 240, 255, 0.05);
-  padding: 16px;
+  box-shadow: var(--shadow-lg), 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 240, 255, 0.1);
+  padding: 20px;
   opacity: 0;
   visibility: hidden;
   transform: translateY(-5px);
@@ -2057,29 +2057,29 @@ body.theme-light .pane-footer {
   z-index: 1200;
   pointer-events: none;
   font-family: var(--font-sans);
-  font-size: 0.8rem;
-  color: #e2e8f0;
-  line-height: 1.45;
+  font-size: 0.9rem;
+  color: #f1f5f9;
+  line-height: 1.6;
   text-align: left;
 }
 
 /* Custom Scrollbar for Help Dropdown */
 .help-dropdown-content::-webkit-scrollbar {
-  width: 4px;
+  width: 5px;
 }
 .help-dropdown-content::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
 }
 .help-dropdown-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.35);
 }
 
 body.theme-light .help-dropdown-content::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.18);
 }
 body.theme-light .help-dropdown-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.3);
 }
 
 /* Arrow indicator */
@@ -2090,7 +2090,7 @@ body.theme-light .help-dropdown-content::-webkit-scrollbar-thumb:hover {
   left: 20px;
   border-width: 6px;
   border-style: solid;
-  border-color: transparent transparent rgba(15, 23, 42, 0.96) transparent;
+  border-color: transparent transparent rgba(10, 15, 30, 0.98) transparent;
 }
 
 .help-dropdown.active .help-dropdown-content {
@@ -2104,139 +2104,144 @@ body.theme-light .help-dropdown-content::-webkit-scrollbar-thumb:hover {
   width: 100%;
   height: auto;
   border-radius: var(--radius-sm);
-  margin-bottom: 16px;
-  border: 1px solid var(--border-color);
+  margin-bottom: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   display: block;
 }
 
 .help-section-title {
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   font-weight: 800;
-  color: var(--cyan);
-  letter-spacing: 0.5px;
-  margin-bottom: 10px;
+  color: #00f0ff;
+  letter-spacing: 0.7px;
+  margin-bottom: 12px;
   text-transform: uppercase;
 }
 body.theme-light .help-section-title {
-  color: var(--primary);
+  color: #6d28d9;
 }
 
 .help-intro {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-  margin-bottom: 16px;
+  font-size: 0.92rem;
+  color: #e2e8f0;
+  line-height: 1.6;
+  margin-bottom: 20px;
 }
 body.theme-light .help-intro {
-  color: #475569;
+  color: #1e293b;
 }
 
 .help-steps-container {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 }
 
 .help-step-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-}
-
-.help-step-number {
-  font-size: 0.75rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  color: var(--cyan);
-  letter-spacing: 0.5px;
-}
-body.theme-light .help-step-number {
-  color: var(--primary);
-}
-
-.help-step-text {
-  font-size: 0.78rem;
-  color: #cbd5e1;
-  line-height: 1.5;
-}
-body.theme-light .help-step-text {
-  color: #334155;
-}
-
-.help-sub-steps {
-  margin-top: 6px;
-  padding-left: 16px;
-  list-style-type: disc;
-  display: flex;
-  flex-direction: column;
   gap: 6px;
 }
 
+.help-step-number {
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #00f0ff;
+  letter-spacing: 0.5px;
+}
+body.theme-light .help-step-number {
+  color: #6d28d9;
+}
+
+.help-step-text {
+  font-size: 0.92rem;
+  color: #f8fafc;
+  line-height: 1.6;
+}
+body.theme-light .help-step-text {
+  color: #0f172a;
+}
+
+.help-sub-steps {
+  margin-top: 8px;
+  padding-left: 20px;
+  list-style-type: disc;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .help-sub-steps li {
-  font-size: 0.76rem;
-  color: #cbd5e1;
-  line-height: 1.45;
+  font-size: 0.9rem;
+  color: #e2e8f0;
+  line-height: 1.55;
 }
 body.theme-light .help-sub-steps li {
-  color: #334155;
+  color: #1e293b;
 }
 
 .help-divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.08);
-  margin: 10px 0;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 16px 0;
+}
+body.theme-light .help-divider {
+  background: rgba(0, 0, 0, 0.15);
 }
 
 .help-warning-box {
-  background: rgba(255, 165, 2, 0.1);
-  border: 1px dashed var(--warning);
+  background: rgba(251, 146, 60, 0.08);
+  border: 1px solid rgba(251, 146, 60, 0.3);
   border-radius: var(--radius-sm);
-  padding: 8px 10px;
-  font-size: 0.75rem;
-  color: #e2e8f0;
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  color: #fdba74;
+  line-height: 1.5;
+}
+.help-warning-box strong {
+  color: #fb923c;
 }
 
-.help-warning-box strong {
-  color: var(--warning);
+body.theme-light .help-warning-box {
+  background: #fff7ed;
+  border-color: #ffedd5;
+  color: #7c2d12;
+}
+body.theme-light .help-warning-box strong {
+  color: #c2410c;
 }
 
 .help-developer-info {
-  font-size: 0.75rem;
-  color: var(--text-muted);
+  font-size: 0.85rem;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+body.theme-light .help-developer-info {
+  color: #475569;
 }
 
 .help-developer-info a {
-  color: var(--cyan);
+  color: #38bdf8;
   text-decoration: underline;
-  font-weight: 600;
+  font-weight: 700;
+}
+body.theme-light .help-developer-info a {
+  color: #2563eb;
 }
 
 body.theme-light .help-dropdown-content {
   background: rgba(255, 255, 255, 0.98);
-  color: #1e293b;
-  box-shadow: var(--shadow-lg), 0 0 20px rgba(0, 0, 0, 0.05);
-  border-color: rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+  box-shadow: var(--shadow-lg), 0 0 20px rgba(0, 0, 0, 0.08);
+  border-color: rgba(15, 23, 42, 0.15);
 }
 
 body.theme-light .help-dropdown-content::before {
   border-color: transparent transparent rgba(255, 255, 255, 0.98) transparent;
 }
 
-body.theme-light .help-steps {
-  color: #334155;
-}
 
-body.theme-light .help-steps strong {
-  color: #0f172a;
-}
-
-body.theme-light .help-divider {
-  background: rgba(0, 0, 0, 0.08);
-}
-
-body.theme-light .help-warning-box {
-  color: #334155;
-}
 
 /* Breathing Pulse Glow Animation for Master Button */
 @keyframes buttonPulseGlow {
