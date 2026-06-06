@@ -806,6 +806,10 @@ body.theme-light .craft-type-tabs {
   width: 100%;
 }
 
+#pane-actions-input {
+  gap: 16px;
+}
+
 .pane-action-btn {
   display: inline-flex;
   align-items: center;
