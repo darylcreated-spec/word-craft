@@ -789,7 +789,7 @@ function exportCraftedText() {
 
 // Drag and drop file reader setup
 function setupEditorDropZone() {
-  const editorBody = document.querySelector('.editor-pane:first-child');
+  const editorBody = document.querySelector('.editor-pane');
   
   editorBody.addEventListener('dragenter', (e) => {
     e.preventDefault();
