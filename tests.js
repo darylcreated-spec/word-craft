@@ -587,12 +587,28 @@
       renderOutputTabs();
       
       // Add two mocked options
-      const opt1 = { id: 'test_opt_1', title: 'Result 1 (HUM-PRO)', content: 'This is the first humanized output.' };
-      const opt2 = { id: 'test_opt_2', title: 'Result 2 (PAR-ACAD)', content: 'This is the second paraphrased output.' };
+      const opt1 = { 
+        id: 'test_opt_1', 
+        title: 'Result 1 (HUM-PRO)', 
+        settings: { mode: 'humanize', tone: 'professional', strength: 3, preserveFormat: true, registerLock: false },
+        content: 'This is the first humanized output.' 
+      };
+      const opt2 = { 
+        id: 'test_opt_2', 
+        title: 'Result 2 (PAR-ACAD)', 
+        settings: { mode: 'paraphrase', tone: 'academic', preserveFormat: false, registerLock: true },
+        content: 'This is the second paraphrased output.' 
+      };
       state.craftedOptions.push(opt1, opt2);
       state.activeOptionId = opt1.id;
       
       renderOutputTabs();
+      // Set initial header title manually as renderOutputTabs doesn't set it (load/switch does)
+      const titleEl = document.getElementById('output-pane-title');
+      if (titleEl) {
+        const settingsDesc = getSettingsDescription(opt1.settings);
+        titleEl.textContent = `Result 1: ${settingsDesc}`;
+      }
       await delay(500);
       
       const tabsBar = document.getElementById('output-tabs-bar');
@@ -622,6 +638,10 @@
         throw new Error("Editor output textarea value did not update on tab switch");
       }
       
+      if (document.getElementById('output-pane-title').textContent !== 'Result 2: Paraphraser • Academic • Locked') {
+        throw new Error("Pane title did not update correctly to reflect option settings: " + document.getElementById('output-pane-title').textContent);
+      }
+      
       // Close tab 2 virtually (the active one)
       const tab2Close = tabWrappers[1].querySelector('.output-tab-close');
       tab2Close.click();
@@ -639,6 +659,10 @@
         throw new Error("Editor output textarea value did not update back to opt1 after closing opt2");
       }
       
+      if (document.getElementById('output-pane-title').textContent !== 'Result 1: Humanizer • Deep • Professional • Formatted') {
+        throw new Error("Pane title did not update correctly after tab closed: " + document.getElementById('output-pane-title').textContent);
+      }
+      
       // Close last tab virtually
       const tab1Close = tabsBar.querySelector('.output-tab-close');
       tab1Close.click();
@@ -654,6 +678,10 @@
       
       if (document.getElementById('editor-output').value !== '') {
         throw new Error("Editor output textarea was not cleared after closing all tabs");
+      }
+      
+      if (document.getElementById('output-pane-title').textContent !== 'Crafted Output') {
+        throw new Error("Pane title did not reset to Crafted Output after all tabs closed");
       }
       
       if (tabsBar.style.display !== 'none') {

@@ -1154,12 +1154,22 @@ async function craftText() {
 
     // Add new option to list
     const newOptId = 'opt_' + Date.now();
-    const modeLabel = state.editorMode === 'humanize' ? 'Humanize' : (state.editorMode === 'grammar' ? 'Grammar' : 'Paraphrase');
+    const modeLabel = state.editorMode === 'humanize' ? 'Hum' : (state.editorMode === 'grammar' ? 'Gram' : 'Para');
     const toneLabel = state.editorTone.substring(0, 4).toUpperCase();
     const optCount = state.craftedOptions.length + 1;
+    
+    const settingsObj = {
+      mode: state.editorMode,
+      tone: state.editorTone,
+      strength: state.editorMode === 'humanize' ? state.humanizeStrength : null,
+      preserveFormat: preserveFormat,
+      registerLock: registerLock
+    };
+    
     const newOption = {
       id: newOptId,
       title: `Result ${optCount} (${modeLabel}-${toneLabel})`,
+      settings: settingsObj,
       content: cleanText
     };
     state.craftedOptions.push(newOption);
@@ -1910,6 +1920,8 @@ function clearCraftedOutput() {
   state.craftedOptions = [];
   state.activeOptionId = null;
   renderOutputTabs();
+  const titleEl = document.getElementById('output-pane-title');
+  if (titleEl) titleEl.textContent = 'Crafted Output';
   stopSpeech();
 
   // Clear Auto Mode Output and Diff
@@ -2305,6 +2317,7 @@ function loadProjectsFromStorage() {
         state.craftedOptions = [{
           id: optId,
           title: 'Result 1 (Imported)',
+          settings: null,
           content: activeProj.outputContent
         }];
         state.activeOptionId = optId;
@@ -2317,6 +2330,17 @@ function loadProjectsFromStorage() {
     renderOutputTabs();
     const activeOpt = state.craftedOptions.find(o => o.id === state.activeOptionId);
     document.getElementById('editor-output').value = activeOpt ? activeOpt.content : '';
+    
+    const titleEl = document.getElementById('output-pane-title');
+    if (titleEl) {
+      if (activeOpt) {
+        const settingsDesc = getSettingsDescription(activeOpt.settings);
+        const titleParts = activeOpt.title.split(' ');
+        titleEl.textContent = `${titleParts[0]} ${titleParts[1]}: ${settingsDesc}`;
+      } else {
+        titleEl.textContent = 'Crafted Output';
+      }
+    }
   }
   
   renderProjectsList();
@@ -2400,6 +2424,36 @@ function renderProjectsList() {
   });
 }
 
+function getSettingsDescription(settings) {
+  if (!settings) return 'Imported Text';
+  
+  const parts = [];
+  
+  // Mode
+  if (settings.mode === 'humanize') {
+    parts.push('Humanizer');
+    if (settings.strength === 1) parts.push('Standard');
+    else if (settings.strength === 2) parts.push('Balanced');
+    else if (settings.strength === 3) parts.push('Deep');
+  } else if (settings.mode === 'grammar') {
+    parts.push('Grammar');
+  } else if (settings.mode === 'paraphrase') {
+    parts.push('Paraphraser');
+  }
+  
+  // Tone
+  if (settings.tone) {
+    const toneCap = settings.tone.charAt(0).toUpperCase() + settings.tone.slice(1);
+    parts.push(toneCap);
+  }
+  
+  // Format / Lock
+  if (settings.preserveFormat) parts.push('Formatted');
+  if (settings.registerLock) parts.push('Locked');
+  
+  return parts.join(' • ');
+}
+
 function renderOutputTabs() {
   const tabsBar = document.getElementById('output-tabs-bar');
   if (!tabsBar) return;
@@ -2456,6 +2510,18 @@ function switchOutputTab(id) {
   const outWordCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
   document.getElementById('output-word-count').textContent = `${outWordCount} words`;
   
+  // Update pane header title to reflect setting
+  const titleEl = document.getElementById('output-pane-title');
+  if (titleEl) {
+    if (activeOpt) {
+      const settingsDesc = getSettingsDescription(activeOpt.settings);
+      const titleParts = activeOpt.title.split(' ');
+      titleEl.textContent = `${titleParts[0]} ${titleParts[1]}: ${settingsDesc}`;
+    } else {
+      titleEl.textContent = 'Crafted Output';
+    }
+  }
+
   // Re-run bypass analysis, diff, and heatmap views as needed
   runBypassAnalysis(text);
   
@@ -2502,6 +2568,14 @@ function closeOutputTab(id) {
       const outWordCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
       document.getElementById('output-word-count').textContent = `${outWordCount} words`;
       
+      // Update pane header title to reflect setting
+      const titleEl = document.getElementById('output-pane-title');
+      if (titleEl) {
+        const settingsDesc = getSettingsDescription(activeOpt.settings);
+        const titleParts = activeOpt.title.split(' ');
+        titleEl.textContent = `${titleParts[0]} ${titleParts[1]}: ${settingsDesc}`;
+      }
+
       runBypassAnalysis(text);
       if (state.showDiff) {
         const original = document.getElementById('editor-input').value;
@@ -2536,6 +2610,9 @@ function closeOutputTab(id) {
         document.getElementById('human-score-status').textContent = 'AI Likelihood Scan';
         document.getElementById('human-score-desc').textContent = 'Highly automated or uniform structures detected. Run Scan or Humanize.';
       }
+      
+      const titleEl = document.getElementById('output-pane-title');
+      if (titleEl) titleEl.textContent = 'Crafted Output';
     }
   }
   
@@ -2595,6 +2672,7 @@ function loadProject(id) {
       state.craftedOptions = [{
         id: optId,
         title: 'Result 1 (Imported)',
+        settings: null,
         content: proj.outputContent
       }];
       state.activeOptionId = optId;
@@ -2607,6 +2685,17 @@ function loadProject(id) {
   renderOutputTabs();
   const activeOpt = state.craftedOptions.find(o => o.id === state.activeOptionId);
   document.getElementById('editor-output').value = activeOpt ? activeOpt.content : '';
+  
+  const titleEl = document.getElementById('output-pane-title');
+  if (titleEl) {
+    if (activeOpt) {
+      const settingsDesc = getSettingsDescription(activeOpt.settings);
+      const titleParts = activeOpt.title.split(' ');
+      titleEl.textContent = `${titleParts[0]} ${titleParts[1]}: ${settingsDesc}`;
+    } else {
+      titleEl.textContent = 'Crafted Output';
+    }
+  }
   
   saveProjectsToStorage();
   
@@ -2659,6 +2748,7 @@ function deleteProject(id, event) {
         state.craftedOptions = [{
           id: optId,
           title: 'Result 1 (Imported)',
+          settings: null,
           content: proj.outputContent
         }];
         state.activeOptionId = optId;
@@ -2671,6 +2761,17 @@ function deleteProject(id, event) {
     renderOutputTabs();
     const activeOpt = state.craftedOptions.find(o => o.id === state.activeOptionId);
     document.getElementById('editor-output').value = activeOpt ? activeOpt.content : '';
+    
+    const titleEl = document.getElementById('output-pane-title');
+    if (titleEl) {
+      if (activeOpt) {
+        const settingsDesc = getSettingsDescription(activeOpt.settings);
+        const titleParts = activeOpt.title.split(' ');
+        titleEl.textContent = `${titleParts[0]} ${titleParts[1]}: ${settingsDesc}`;
+      } else {
+        titleEl.textContent = 'Crafted Output';
+      }
+    }
   }
   
   saveProjectsToStorage();
