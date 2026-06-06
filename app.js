@@ -1404,6 +1404,33 @@ function analyzeManualText() {
   document.getElementById('synonym-popup').classList.remove('active');
   
   try {
+    // Sync current input to the active option content if available
+    if (state.activeOptionId) {
+      const activeOpt = state.craftedOptions.find(o => o.id === state.activeOptionId);
+      if (activeOpt) {
+        activeOpt.content = input;
+        const autoOutput = document.getElementById('editor-output');
+        if (autoOutput) {
+          autoOutput.value = input;
+        }
+      }
+    } else {
+      if (state.craftedOptions.length > 0) {
+        state.activeOptionId = state.craftedOptions[0].id;
+        state.craftedOptions[0].content = input;
+      } else {
+        const optId = 'opt_' + Date.now();
+        state.craftedOptions = [{
+          id: optId,
+          title: 'Result 1',
+          settings: null,
+          content: input
+        }];
+        state.activeOptionId = optId;
+      }
+    }
+    renderOutputTabs();
+
     // Process input using Compromise.js
     const doc = window.nlp(input);
     const sentences = doc.json();
@@ -1880,6 +1907,18 @@ function rebuildInputFromTokens() {
     rebuilt += (t.pre || '') + t.text + (t.post || '');
   });
   document.getElementById('editor-input').value = rebuilt;
+  
+  if (state.activeOptionId) {
+    const activeOpt = state.craftedOptions.find(o => o.id === state.activeOptionId);
+    if (activeOpt) {
+      activeOpt.content = rebuilt;
+      const autoOutput = document.getElementById('editor-output');
+      if (autoOutput) {
+        autoOutput.value = rebuilt;
+      }
+    }
+  }
+  
   updateInputStats();
   autoSaveCurrentProject();
 }
@@ -1966,6 +2005,7 @@ function clearCraftedOutput() {
   if (popup) popup.classList.remove('active');
   
   updateInputStats();
+  autoSaveCurrentProject();
 }
 
 // --- REVIEWS & FEEDBACK ENGINE ---
@@ -2475,7 +2515,7 @@ function renderOutputTabs() {
   const tabsBar = document.getElementById('output-tabs-bar');
   if (!tabsBar) return;
   
-  if (state.craftType !== 'auto' || !state.craftedOptions || state.craftedOptions.length === 0) {
+  if ((state.craftType !== 'auto' && state.craftType !== 'manual') || !state.craftedOptions || state.craftedOptions.length === 0) {
     tabsBar.style.display = 'none';
     return;
   }
@@ -2551,6 +2591,12 @@ function switchOutputTab(id) {
     renderHeatmap();
   }
   
+  // Re-sync manual mode workspace to show the selected tab's content
+  if (state.craftType === 'manual') {
+    document.getElementById('editor-input').value = text;
+    analyzeManualText();
+  }
+
   // Re-render tabs
   renderOutputTabs();
   
@@ -2601,6 +2647,12 @@ function closeOutputTab(id) {
       if (state.showHeatmap) {
         renderHeatmap();
       }
+      
+      // Re-sync manual mode workspace to show the new active tab's content
+      if (state.craftType === 'manual') {
+        document.getElementById('editor-input').value = text;
+        analyzeManualText();
+      }
     } else {
       state.activeOptionId = null;
       // No tabs left: reset output pane to placeholder state
@@ -2630,6 +2682,32 @@ function closeOutputTab(id) {
       
       const titleEl = document.getElementById('output-pane-title');
       if (titleEl) titleEl.textContent = 'Crafted Output';
+      
+      // Reset manual mode workspace when no tabs are left
+      if (state.craftType === 'manual') {
+        state.manualTokens = [];
+        state.selectedWordIndex = null;
+        state.manualHistory = [];
+        state.manualHistoryIndex = -1;
+        updateUndoRedoButtons();
+        document.getElementById('editor-input').value = '';
+        
+        const manualOutput = document.getElementById('editor-output-manual');
+        if (manualOutput) {
+          manualOutput.innerHTML = `
+            <div class="placeholder-word-text centered">
+              Enter text on the left and click "ANALYZE TEXT" to identify parts of speech and swap synonyms word-by-word.
+            </div>
+          `;
+        }
+        
+        const cardPlaceholder = document.querySelector('#active-word-card .placeholder-word-text');
+        const cardDetails = document.querySelector('#active-word-card .active-word-details');
+        if (cardPlaceholder && cardDetails) {
+          cardPlaceholder.style.display = 'block';
+          cardDetails.style.display = 'none';
+        }
+      }
     }
   }
   
