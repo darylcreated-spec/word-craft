@@ -777,13 +777,16 @@ body.theme-light .craft-type-tabs {
 }
 
 .pane-header {
-  height: 48px;
+  height: 82px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  padding: 10px 20px;
+  gap: 6px;
   border-bottom: 1px solid var(--border-color);
   background: rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
 }
 
 .pane-title {
@@ -796,8 +799,11 @@ body.theme-light .craft-type-tabs {
 
 .pane-actions {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
+  justify-content: flex-start;
+  height: 28px;
+  width: 100%;
 }
 
 .pane-action-btn {
@@ -844,7 +850,7 @@ body.theme-light .craft-type-tabs {
 }
 
 .pane-action-btn.text-danger {
-  margin-left: 8px;
+  margin-left: auto;
 }
 
 .editor-body {

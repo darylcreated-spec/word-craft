@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
   <!-- CSS Stylesheet with Cache Busting -->
-  <link rel="stylesheet" href="style.css?v=1.6.2">
+  <link rel="stylesheet" href="style.css?v=1.6.3">
 </head>
 <body class="theme-win11">
 
@@ -324,7 +324,7 @@
           <!-- Original Input Pane -->
           <div class="editor-pane" title="Original text panel: paste or load draft text here">
             <div class="pane-header" title="Input controls header">
-              <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 12px; height: 28px;">
                 <span class="pane-title">Original Text</span>
                 <button class="craft-master-btn square-btn" id="btn-craft-master" title="Process text: paraphrases, humanizes, or extracts grammar types depending on selected tab mode" onclick="triggerMainAction()">
                   <svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 2L2 22h20L12 2zm0 3.99L18.49 19H5.51L12 5.99z" fill="currentColor"/></svg>
@@ -368,7 +368,9 @@
           <!-- Crafted Output Pane / Interactive Canvas -->
           <div class="editor-pane" title="Result output panel: view rewrites and compare drafts">
             <div class="pane-header" title="Output actions header">
-              <span class="pane-title" id="output-pane-title">Crafted Output</span>
+              <div style="display: flex; align-items: center; height: 28px;">
+                <span class="pane-title" id="output-pane-title">Crafted Output</span>
+              </div>
               
               <!-- AI Mode header actions -->
               <div class="pane-actions" id="pane-actions-auto" title="AI mode toolbar actions">
@@ -611,7 +613,7 @@
   <script src="config.js?v=1.6.1"></script>
   <script src="sound.js?v=1.6.1"></script>
   <script src="docx-reader.js?v=1.6.1"></script>
-  <script src="app.js?v=1.6.2"></script>
+  <script src="app.js?v=1.6.3"></script>
   <script>
     if (window.location.search.includes('test=true')) {
       const script = document.createElement('script');
