@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
   <!-- CSS Stylesheet with Cache Busting -->
-  <link rel="stylesheet" href="style.css?v=1.6.6">
+  <link rel="stylesheet" href="style.css?v=1.6.7">
 </head>
 <body class="theme-win11">
 
@@ -44,19 +44,49 @@
             <span>GUIDE</span>
           </button>
           <div class="help-dropdown-content" style="display: none;">
-            <div class="help-section-title">Word Craft Guide</div>
-            <ol class="help-steps">
-              <li><strong>Input Text:</strong> Type or paste your draft in the left pane, or click <strong>Import</strong> to upload a docx, pdf, or txt file.</li>
-              <li><strong>Rewrite Mode:</strong> Toggle <strong>REWRITE</strong> to automatically humanize writing using custom AI models.</li>
-              <li><strong>Manual Mode:</strong> Toggle <strong>MANUAL CRAFT</strong> to tag parts of speech and click individual words to swap synonyms.</li>
-              <li><strong>AI Scanner:</strong> Use <strong>Scan</strong> to visualize AI risk sentence-by-sentence and click spans to get alternative rewrites.</li>
-            </ol>
-            <div class="help-divider"></div>
-            <div class="help-warning-box">
-              <strong>⚠️ Crucial AI Bypass Tip:</strong><br>
-              The only true way to consistently beat AI detectors is to <strong>write your own original content</strong>.
+            <img src="user_guide_infographic.jpg" alt="Word Craft User Guide Infographic" class="help-infographic">
+            <div class="help-section-title">Word Craft User Guide</div>
+            <p class="help-intro">
+              Word Craft is a versatile digital platform designed to help users refine their writing through a blend of automated AI tools and manual editing features. The software offers a "Humanize" function to adjust the tone of a draft, alongside an AI scanner that evaluates how likely the text is to be flagged by detection algorithms. Writers can also utilize a manual mode to break down sentence mechanics, allowing them to swap individual words for synonyms based on specific parts of speech. To power these transformations, the tool integrates with external APIs such as Gemini or OpenRouter, ensuring that data is processed through secure, high-performance models. Ultimately, while the system provides advanced paraphrasing and styling options, it emphasizes that original human authorship remains the most effective way to ensure authenticity.
+            </p>
+            
+            <div class="help-steps-container">
+              <div class="help-step-item">
+                <div class="help-step-number">Step 1: Get the App Ready</div>
+                <div class="help-step-text">To make the app work, you need a special passcode called an "API key." You can get a free one from Google and just paste it into the app's settings. For a trial period a key is already installed.</div>
+              </div>
+              
+              <div class="help-step-item">
+                <div class="help-step-number">Step 2: Input / Import Text</div>
+                <div class="help-step-text">Simply type or paste your text into the left side of the screen. You can also drag and drop a document (like a Word file or PDF) right into the app. (Make sure your writing is in English, or the app might just try to translate it!)</div>
+              </div>
+              
+              <div class="help-step-item">
+                <div class="help-step-number">Step 3: Choose How to Edit</div>
+                <div class="help-step-text">
+                  You have two easy ways to change your text:
+                  <ul class="help-sub-steps">
+                    <li><strong>The Automatic Way (Rewrite Mode):</strong> Just flip the switch to REWRITE. The app will completely reword your text to sound more human. You can tell it what tone to use and how strongly you want it changed.</li>
+                    <li><strong>The Hands-On Way (Manual Mode):</strong> If you want to pick and choose your changes, use MANUAL CRAFT, where, the app will highlight your text, and you can simply click on any word to pick a different one (a synonym) from a list. You can choose basic words or more creative ones.</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div class="help-step-item">
+                <div class="help-step-number">Step 4: The "Robot Check" (AI Scanner)</div>
+                <div class="help-step-text">Want to know if your writing sounds like a computer wrote it? Click the Scan button. The app will highlight your sentences to show which ones sound too much like AI. If you click on those robotic sentences, the app will give you better, more natural ways to write them.</div>
+              </div>
             </div>
+            
             <div class="help-divider"></div>
+            
+            <div class="help-warning-box">
+              <strong>💡 The Golden Rule:</strong><br>
+              While the app is a great helper, the absolute best way to pass an AI check is simply to write your own original content.
+            </div>
+            
+            <div class="help-divider"></div>
+            
             <div class="help-developer-info">
               Developer: <strong>Daryl M.</strong><br>
               Support: <a href="mailto:daryl.created@gmail.com">daryl.created@gmail.com</a>
@@ -621,6 +651,10 @@
       const script = document.createElement('script');
       script.src = 'tests.js?v=' + Date.now();
       document.body.appendChild(script);
+    }
+    if (window.location.search.includes('open_guide=true')) {
+      const btn = document.querySelector('.help-dropdown-btn');
+      if (btn) btn.click();
     }
   </script>
 </body>
