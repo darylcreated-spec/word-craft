@@ -2268,6 +2268,19 @@ window.addEventListener('message', (event) => {
   }
 });
 
+function sanitizeOptionTitle(title) {
+  if (typeof title === 'string' && title.startsWith('Result ')) {
+    const parts = title.split(' ');
+    if (parts.length >= 2) {
+      const num = parseInt(parts[1]);
+      if (!isNaN(num)) {
+        return `Result ${num}`;
+      }
+    }
+  }
+  return title;
+}
+
 // --- PROJECTS LIBRARY MANAGEMENT ---
 
 function loadProjectsFromStorage() {
@@ -2310,7 +2323,10 @@ function loadProjectsFromStorage() {
     document.getElementById('editor-input').value = activeProj.inputContent;
     
     if (activeProj.craftedOptions && Array.isArray(activeProj.craftedOptions)) {
-      state.craftedOptions = activeProj.craftedOptions;
+      state.craftedOptions = activeProj.craftedOptions.map(opt => {
+        opt.title = sanitizeOptionTitle(opt.title);
+        return opt;
+      });
       state.activeOptionId = activeProj.activeOptionId !== undefined ? activeProj.activeOptionId : (state.craftedOptions.length > 0 ? state.craftedOptions[0].id : null);
     } else {
       if (activeProj.outputContent) {
@@ -2665,7 +2681,10 @@ function loadProject(id) {
   document.getElementById('editor-input').value = proj.inputContent;
   
   if (proj.craftedOptions && Array.isArray(proj.craftedOptions)) {
-    state.craftedOptions = proj.craftedOptions;
+    state.craftedOptions = proj.craftedOptions.map(opt => {
+      opt.title = sanitizeOptionTitle(opt.title);
+      return opt;
+    });
     state.activeOptionId = proj.activeOptionId !== undefined ? proj.activeOptionId : (state.craftedOptions.length > 0 ? state.craftedOptions[0].id : null);
   } else {
     if (proj.outputContent) {
@@ -2741,7 +2760,10 @@ function deleteProject(id, event) {
     document.getElementById('editor-input').value = proj.inputContent;
     
     if (proj.craftedOptions && Array.isArray(proj.craftedOptions)) {
-      state.craftedOptions = proj.craftedOptions;
+      state.craftedOptions = proj.craftedOptions.map(opt => {
+        opt.title = sanitizeOptionTitle(opt.title);
+        return opt;
+      });
       state.activeOptionId = proj.activeOptionId !== undefined ? proj.activeOptionId : (state.craftedOptions.length > 0 ? state.craftedOptions[0].id : null);
     } else {
       if (proj.outputContent) {
