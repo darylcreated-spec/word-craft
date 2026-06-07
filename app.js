@@ -330,16 +330,27 @@ function saveSettings() {
     localStorage.setItem('wc_nvidia_key', key);
   }
 
-  if (provider === 'gemini') {
+  // Fail-safe: If selected provider has no key, fall back to NVIDIA if default key is present
+  if (state.apiProvider === 'gemini' && (!state.geminiApiKey || state.geminiApiKey.trim() === '') && state.nvidiaApiKey) {
+    state.apiProvider = 'nvidia';
+    model = 'meta/llama-3.3-70b-instruct';
+    alert("Gemini key is missing! Automatically falling back to default NVIDIA NIM provider.");
+  } else if (state.apiProvider === 'openrouter' && (!state.openRouterApiKey || state.openRouterApiKey.trim() === '') && state.nvidiaApiKey) {
+    state.apiProvider = 'nvidia';
+    model = 'meta/llama-3.3-70b-instruct';
+    alert("OpenRouter key is missing! Automatically falling back to default NVIDIA NIM provider.");
+  }
+
+  if (state.apiProvider === 'gemini') {
     state.apiKey = state.geminiApiKey;
-  } else if (provider === 'openrouter') {
+  } else if (state.apiProvider === 'openrouter') {
     state.apiKey = state.openRouterApiKey;
   } else {
     state.apiKey = state.nvidiaApiKey;
   }
   state.geminiModel = model;
   
-  localStorage.setItem('wc_api_provider', provider);
+  localStorage.setItem('wc_api_provider', state.apiProvider);
   localStorage.setItem('wc_gemini_model', model);
   
   closeSettings();
@@ -1011,10 +1022,24 @@ async function craftText() {
   }
   
   if (!state.apiKey || state.apiKey.trim() === '' || state.apiKey === 'undefined' || state.apiKey === 'null') {
-    const providerLabel = state.apiProvider === 'gemini' ? 'Gemini' : (state.apiProvider === 'openrouter' ? 'OpenRouter' : 'NVIDIA');
-    alert(`${providerLabel} API Key is missing! Please click the Settings gear icon in the top right to configure your API key.`);
-    openSettings();
-    return;
+    if (state.nvidiaApiKey && state.nvidiaApiKey.trim() !== '' && state.nvidiaApiKey !== 'undefined' && state.nvidiaApiKey !== 'null') {
+      state.apiProvider = 'nvidia';
+      state.apiKey = state.nvidiaApiKey;
+      state.geminiModel = 'meta/llama-3.3-70b-instruct';
+      localStorage.setItem('wc_api_provider', 'nvidia');
+      localStorage.setItem('wc_gemini_model', 'meta/llama-3.3-70b-instruct');
+      
+      const providerEl = document.getElementById('settings-provider');
+      if (providerEl) providerEl.value = 'nvidia';
+      updateModelOptions();
+      
+      alert("Selected provider key was missing. Automatically fell back to the working default NVIDIA NIM provider.");
+    } else {
+      const providerLabel = state.apiProvider === 'gemini' ? 'Gemini' : (state.apiProvider === 'openrouter' ? 'OpenRouter' : 'NVIDIA');
+      alert(`${providerLabel} API Key is missing! Please click the Settings gear icon in the top right to configure your API key.`);
+      openSettings();
+      return;
+    }
   }
 
   const craftBtn = document.getElementById('btn-craft-master');
@@ -3296,7 +3321,19 @@ function rebuildTextFromHeatmapSentences() {
 
 async function requestAiContent(systemInstruction, promptText) {
   if (!state.apiKey || state.apiKey.trim() === '' || state.apiKey === 'undefined' || state.apiKey === 'null') {
-    throw new Error("API Key is missing. Please configure it in Settings.");
+    if (state.nvidiaApiKey && state.nvidiaApiKey.trim() !== '' && state.nvidiaApiKey !== 'undefined' && state.nvidiaApiKey !== 'null') {
+      state.apiProvider = 'nvidia';
+      state.apiKey = state.nvidiaApiKey;
+      state.geminiModel = 'meta/llama-3.3-70b-instruct';
+      localStorage.setItem('wc_api_provider', 'nvidia');
+      localStorage.setItem('wc_gemini_model', 'meta/llama-3.3-70b-instruct');
+      
+      const providerEl = document.getElementById('settings-provider');
+      if (providerEl) providerEl.value = 'nvidia';
+      updateModelOptions();
+    } else {
+      throw new Error("API Key is missing. Please configure it in Settings.");
+    }
   }
   
   if (state.apiProvider === 'gemini') {
