@@ -873,6 +873,7 @@ function switchCraftType(type) {
   audio.playClick();
   renderOutputTabs();
   updateInputStats();
+  updateOutputPaneTitle();
 }
 
 function triggerMainAction() {
@@ -2730,16 +2731,7 @@ async function loadProjectsFromDb() {
           const activeOpt = state.craftedOptions.find(o => o.id === state.activeOptionId);
           document.getElementById('editor-output').value = activeOpt ? activeOpt.content : '';
           
-          const titleEl = document.getElementById('output-pane-title');
-          if (titleEl) {
-            if (activeOpt) {
-              const settingsDesc = getSettingsDescription(activeOpt.settings);
-              const titleParts = activeOpt.title.split(' ');
-              titleEl.textContent = `${titleParts[0]} ${titleParts[1]}: ${settingsDesc}`;
-            } else {
-              titleEl.textContent = 'Crafted Output';
-            }
-          }
+          updateOutputPaneTitle();
         }
         
         renderProjectsList();
@@ -2817,16 +2809,7 @@ function loadProjectsFromStorage() {
     const activeOpt = state.craftedOptions.find(o => o.id === state.activeOptionId);
     document.getElementById('editor-output').value = activeOpt ? activeOpt.content : '';
     
-    const titleEl = document.getElementById('output-pane-title');
-    if (titleEl) {
-      if (activeOpt) {
-        const settingsDesc = getSettingsDescription(activeOpt.settings);
-        const titleParts = activeOpt.title.split(' ');
-        titleEl.textContent = `${titleParts[0]} ${titleParts[1]}: ${settingsDesc}`;
-      } else {
-        titleEl.textContent = 'Crafted Output';
-      }
-    }
+    updateOutputPaneTitle();
   }
   
   renderProjectsList();
@@ -2987,6 +2970,29 @@ function renderOutputTabs() {
   });
 }
 
+function updateOutputPaneTitle() {
+  const titleEl = document.getElementById('output-pane-title');
+  if (!titleEl) return;
+  
+  if (state.craftType === 'manual') {
+    titleEl.textContent = 'Manual Grammar & Synonym Inspector';
+  } else if (state.craftType === 'reviews') {
+    titleEl.textContent = 'Community Reviews & Feedback';
+  } else if (state.craftType === 'projects') {
+    titleEl.textContent = 'Saved Document Drafts';
+  } else {
+    // auto mode
+    const activeOpt = state.craftedOptions.find(o => o.id === state.activeOptionId);
+    if (activeOpt) {
+      const settingsDesc = getSettingsDescription(activeOpt.settings);
+      const titleParts = activeOpt.title.split(' ');
+      titleEl.textContent = `${titleParts[0]} ${titleParts[1]}: ${settingsDesc}`;
+    } else {
+      titleEl.textContent = 'Crafted Output';
+    }
+  }
+}
+
 function switchOutputTab(id) {
   // Cancel active speech reading
   if (state.isSpeaking) {
@@ -3005,16 +3011,7 @@ function switchOutputTab(id) {
   document.getElementById('output-word-count').textContent = `${outWordCount} words`;
   
   // Update pane header title to reflect setting
-  const titleEl = document.getElementById('output-pane-title');
-  if (titleEl) {
-    if (activeOpt) {
-      const settingsDesc = getSettingsDescription(activeOpt.settings);
-      const titleParts = activeOpt.title.split(' ');
-      titleEl.textContent = `${titleParts[0]} ${titleParts[1]}: ${settingsDesc}`;
-    } else {
-      titleEl.textContent = 'Crafted Output';
-    }
-  }
+  updateOutputPaneTitle();
 
   // Re-run bypass analysis, diff, and heatmap views as needed
   runBypassAnalysis(text);
@@ -3069,12 +3066,7 @@ function closeOutputTab(id) {
       document.getElementById('output-word-count').textContent = `${outWordCount} words`;
       
       // Update pane header title to reflect setting
-      const titleEl = document.getElementById('output-pane-title');
-      if (titleEl) {
-        const settingsDesc = getSettingsDescription(activeOpt.settings);
-        const titleParts = activeOpt.title.split(' ');
-        titleEl.textContent = `${titleParts[0]} ${titleParts[1]}: ${settingsDesc}`;
-      }
+      updateOutputPaneTitle();
 
       runBypassAnalysis(text);
       if (state.showDiff) {
@@ -3117,8 +3109,7 @@ function closeOutputTab(id) {
         document.getElementById('human-score-desc').textContent = 'Highly automated or uniform structures detected. Run Scan or Humanize.';
       }
       
-      const titleEl = document.getElementById('output-pane-title');
-      if (titleEl) titleEl.textContent = 'Crafted Output';
+      updateOutputPaneTitle();
       
       // Reset manual mode workspace when no tabs are left
       if (state.craftType === 'manual') {
@@ -3221,16 +3212,7 @@ function loadProject(id) {
   const activeOpt = state.craftedOptions.find(o => o.id === state.activeOptionId);
   document.getElementById('editor-output').value = activeOpt ? activeOpt.content : '';
   
-  const titleEl = document.getElementById('output-pane-title');
-  if (titleEl) {
-    if (activeOpt) {
-      const settingsDesc = getSettingsDescription(activeOpt.settings);
-      const titleParts = activeOpt.title.split(' ');
-      titleEl.textContent = `${titleParts[0]} ${titleParts[1]}: ${settingsDesc}`;
-    } else {
-      titleEl.textContent = 'Crafted Output';
-    }
-  }
+  updateOutputPaneTitle();
   
   saveProjectsToStorage();
   
@@ -3301,16 +3283,7 @@ function deleteProject(id, event) {
     const activeOpt = state.craftedOptions.find(o => o.id === state.activeOptionId);
     document.getElementById('editor-output').value = activeOpt ? activeOpt.content : '';
     
-    const titleEl = document.getElementById('output-pane-title');
-    if (titleEl) {
-      if (activeOpt) {
-        const settingsDesc = getSettingsDescription(activeOpt.settings);
-        const titleParts = activeOpt.title.split(' ');
-        titleEl.textContent = `${titleParts[0]} ${titleParts[1]}: ${settingsDesc}`;
-      } else {
-        titleEl.textContent = 'Crafted Output';
-      }
-    }
+    updateOutputPaneTitle();
   }
   
   saveProjectsToStorage();
