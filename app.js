@@ -136,6 +136,14 @@ async function secureFetch(url, options = {}) {
 
 // --- Initialization ---
 window.addEventListener('DOMContentLoaded', () => {
+  // Load or generate user UUID for cloud sync
+  let userUuid = localStorage.getItem('wc_user_uuid');
+  if (!userUuid || userUuid === 'null' || userUuid === 'undefined') {
+    userUuid = crypto.randomUUID();
+    localStorage.setItem('wc_user_uuid', userUuid);
+  }
+  state.userUuid = userUuid;
+
   // Load data from LocalStorage
   loadSettingsFromStorage();
   
@@ -185,6 +193,9 @@ window.addEventListener('DOMContentLoaded', () => {
       synonymPopup.classList.remove('active');
     }
   });
+
+  // Load projects from cloud
+  loadProjectsFromDb();
 });
 
 function loadSettingsFromStorage() {
@@ -2226,7 +2237,7 @@ function clearCraftedOutput() {
 
 // --- REVIEWS & FEEDBACK ENGINE ---
 
-function loadReviews() {
+async function loadReviews() {
   const defaultReviews = [
     {
       author: "Daryl M.",
@@ -2251,6 +2262,26 @@ function loadReviews() {
     }
   ];
   
+  try {
+    const url = window.location.hostname.endsWith('.vercel.app') 
+      ? '/api/reviews' 
+      : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.port === '8000')
+        ? 'http://localhost:8000/api/reviews'
+        : '/api/reviews';
+        
+    const response = await fetch(url).catch(() => null);
+    if (response && response.ok) {
+      const dbReviews = await response.json();
+      if (Array.isArray(dbReviews) && dbReviews.length > 0) {
+        state.reviewsList = dbReviews;
+        renderReviews();
+        return;
+      }
+    }
+  } catch (err) {
+    console.warn("Failed to load reviews from database, falling back to local storage.", err);
+  }
+
   const savedReviews = localStorage.getItem('wc_custom_reviews');
   if (savedReviews) {
     try {
@@ -2348,7 +2379,7 @@ function setStarInputRating(rating) {
   });
 }
 
-function submitReview() {
+async function submitReview() {
   const author = document.getElementById('review-author').value.trim() || 'Anonymous';
   const title = document.getElementById('review-title').value.trim() || 'No Title';
   const comment = document.getElementById('review-comment').value.trim();
@@ -2373,6 +2404,23 @@ function submitReview() {
     date: new Date().toISOString().split('T')[0]
   };
   
+  // Try database sync first
+  try {
+    const url = window.location.hostname.endsWith('.vercel.app') 
+      ? '/api/reviews' 
+      : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.port === '8000')
+        ? 'http://localhost:8000/api/reviews'
+        : '/api/reviews';
+        
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newReview)
+    }).catch(() => null);
+  } catch (err) {
+    console.warn("Failed to submit review to database, saving locally.", err);
+  }
+
   // Fetch only custom reviews from storage
   let customReviews = [];
   const savedReviews = localStorage.getItem('wc_custom_reviews');
@@ -2386,7 +2434,7 @@ function submitReview() {
   localStorage.setItem('wc_custom_reviews', JSON.stringify(customReviews));
   
   // Reload
-  loadReviews();
+  await loadReviews();
   closeReviewModal();
   
   audio.playDiscover();
@@ -2537,6 +2585,171 @@ function sanitizeOptionTitle(title) {
   return title;
 }
 
+// --- PROJECTS CLOUD SYNC HELPERS ---
+function getProjectsApiUrl() {
+  return window.location.hostname.endsWith('.vercel.app') 
+    ? '/api/projects' 
+    : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.port === '8000')
+      ? 'http://localhost:8000/api/projects'
+      : '/api/projects';
+}
+
+function mapDbProjectToLocal(dbProj) {
+  let craftedOptions = [];
+  if (dbProj.options_json) {
+    try {
+      craftedOptions = typeof dbProj.options_json === 'string' ? JSON.parse(dbProj.options_json) : dbProj.options_json;
+    } catch (e) {
+      console.warn("Failed to parse options_json", e);
+    }
+  }
+  return {
+    id: dbProj.id,
+    title: dbProj.title,
+    inputContent: dbProj.input_content || '',
+    outputContent: dbProj.output_content || '',
+    activeOptionId: dbProj.active_option_id || null,
+    craftedOptions: Array.isArray(craftedOptions) ? craftedOptions : [],
+    timestamp: dbProj.updated_at ? new Date(dbProj.updated_at).getTime() : Date.now()
+  };
+}
+
+async function syncProjectToDb(project) {
+  if (!state.userUuid) return;
+  try {
+    const url = getProjectsApiUrl();
+    const payload = {
+      id: project.id,
+      user_uuid: state.userUuid,
+      title: project.title,
+      input_content: project.inputContent || '',
+      output_content: project.outputContent || '',
+      active_option_id: project.activeOptionId || null,
+      options_json: JSON.stringify(project.craftedOptions || [])
+    };
+    
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
+    console.warn("Failed to sync project to database", err);
+  }
+}
+
+async function deleteProjectFromDb(id) {
+  if (!state.userUuid) return;
+  try {
+    const baseUrl = getProjectsApiUrl();
+    const url = `${baseUrl}?id=${id}&user_uuid=${state.userUuid}`;
+    await fetch(url, { method: 'DELETE' });
+  } catch (err) {
+    console.warn("Failed to delete project from database", err);
+  }
+}
+
+async function loadProjectsFromDb() {
+  if (!state.userUuid) return;
+  try {
+    const baseUrl = getProjectsApiUrl();
+    const url = `${baseUrl}?user_uuid=${state.userUuid}`;
+    const response = await fetch(url).catch(() => null);
+    if (response && response.ok) {
+      const dbProjects = await response.json();
+      if (Array.isArray(dbProjects) && dbProjects.length > 0) {
+        // Map DB projects to local format
+        const mapped = dbProjects.map(mapDbProjectToLocal);
+        
+        // Merge logic:
+        const localProjectsMap = new Map(state.projectsList.map(p => [p.id, p]));
+        const merged = [];
+        
+        mapped.forEach(dbP => {
+          const localP = localProjectsMap.get(dbP.id);
+          if (localP) {
+            if (dbP.timestamp > localP.timestamp) {
+              merged.push(dbP);
+            } else {
+              merged.push(localP);
+              if (localP.timestamp > dbP.timestamp) {
+                // Upload newer local to DB in background
+                syncProjectToDb(localP);
+              }
+            }
+            localProjectsMap.delete(dbP.id);
+          } else {
+            merged.push(dbP);
+          }
+        });
+        
+        // Add any remaining local projects and sync them to DB
+        localProjectsMap.forEach(localP => {
+          merged.push(localP);
+          syncProjectToDb(localP);
+        });
+        
+        state.projectsList = merged;
+        
+        // Ensure active project is still valid or select one
+        if (!state.activeProjectId || !state.projectsList.some(p => p.id === state.activeProjectId)) {
+          if (state.projectsList.length > 0) {
+            state.activeProjectId = state.projectsList[0].id;
+          }
+        }
+        
+        saveProjectsToStorage();
+        
+        // Update the current editor view based on active project
+        const activeProj = state.projectsList.find(p => p.id === state.activeProjectId);
+        if (activeProj) {
+          document.getElementById('editor-input').value = activeProj.inputContent || '';
+          if (activeProj.craftedOptions && Array.isArray(activeProj.craftedOptions)) {
+            state.craftedOptions = activeProj.craftedOptions.map(opt => {
+              opt.title = sanitizeOptionTitle(opt.title);
+              return opt;
+            });
+            state.activeOptionId = activeProj.activeOptionId !== undefined ? activeProj.activeOptionId : (state.craftedOptions.length > 0 ? state.craftedOptions[0].id : null);
+          } else {
+            if (activeProj.outputContent) {
+              const optId = 'opt_' + Date.now();
+              state.craftedOptions = [{
+                id: optId,
+                title: 'Result 1',
+                settings: null,
+                content: activeProj.outputContent
+              }];
+              state.activeOptionId = optId;
+            } else {
+              state.craftedOptions = [];
+              state.activeOptionId = null;
+            }
+          }
+          
+          renderOutputTabs();
+          const activeOpt = state.craftedOptions.find(o => o.id === state.activeOptionId);
+          document.getElementById('editor-output').value = activeOpt ? activeOpt.content : '';
+          
+          const titleEl = document.getElementById('output-pane-title');
+          if (titleEl) {
+            if (activeOpt) {
+              const settingsDesc = getSettingsDescription(activeOpt.settings);
+              const titleParts = activeOpt.title.split(' ');
+              titleEl.textContent = `${titleParts[0]} ${titleParts[1]}: ${settingsDesc}`;
+            } else {
+              titleEl.textContent = 'Crafted Output';
+            }
+          }
+        }
+        
+        renderProjectsList();
+      }
+    }
+  } catch (err) {
+    console.warn("Failed to load projects from cloud database", err);
+  }
+}
+
 // --- PROJECTS LIBRARY MANAGEMENT ---
 
 function loadProjectsFromStorage() {
@@ -2622,6 +2835,14 @@ function loadProjectsFromStorage() {
 function saveProjectsToStorage() {
   localStorage.setItem('wc_projects', JSON.stringify(state.projectsList));
   localStorage.setItem('wc_active_project_id', state.activeProjectId);
+  
+  // Cloud sync active project if available
+  if (state.activeProjectId) {
+    const activeProj = state.projectsList.find(p => p.id === state.activeProjectId);
+    if (activeProj) {
+      syncProjectToDb(activeProj);
+    }
+  }
 }
 
 function renderProjectsList() {
@@ -3047,6 +3268,7 @@ function deleteProject(id, event) {
   if (!confirm("Are you sure you want to delete this document?")) return;
   
   state.projectsList = state.projectsList.filter(p => p.id !== id);
+  deleteProjectFromDb(id);
   
   if (state.activeProjectId === id) {
     state.activeProjectId = state.projectsList[0].id;
