@@ -2429,3 +2429,43 @@ body.theme-light .output-tab-wrapper.active {
 body.theme-light .output-tab-wrapper.active .output-tab-btn {
   color: var(--primary);
 }
+
+/* --- Cross-Platform & Touch Screen Enhancements --- */
+body.is-touch-device button, 
+body.is-touch-device .modal-btn, 
+body.is-touch-device .tab-btn, 
+body.is-touch-device .pane-actions button,
+body.is-touch-device .settings-btn,
+body.is-touch-device select,
+body.is-touch-device input[type="text"],
+body.is-touch-device input[type="password"] {
+  min-height: 44px; /* Optimal minimum touch target size */
+}
+
+body.is-touch-device .manual-word-span {
+  padding: 6px 8px !important;
+  margin: 3px 2px !important;
+  border-radius: 4px;
+}
+
+body.is-touch-device .star-rating-widget span {
+  font-size: 2.2rem;
+  padding: 0 8px;
+}
+
+body.is-touch-device .output-tab-wrapper {
+  padding: 8px 14px;
+}
+
+body.is-touch-device .output-tab-close {
+  height: 22px;
+  width: 22px;
+  font-size: 1.1rem;
+  margin-left: 10px;
+}
+
+body.is-touch-device .theme-select,
+body.is-touch-device .form-select {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}

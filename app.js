@@ -166,6 +166,22 @@ window.addEventListener('DOMContentLoaded', () => {
   if (editorOutput) {
     editorOutput.addEventListener('input', autoSaveCurrentProject);
   }
+
+  // Cross-Platform & Touch Capability Detection
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
+  if (isTouchDevice) {
+    document.body.classList.add('is-touch-device');
+  }
+
+  // Window Resize Listener
+  window.addEventListener('resize', () => {
+    initMobileViews();
+    // Dismiss contextual synonym overlay popup on mobile view transitions
+    const synonymPopup = document.getElementById('synonym-popup');
+    if (synonymPopup && window.innerWidth <= 768) {
+      synonymPopup.classList.remove('active');
+    }
+  });
 });
 
 function loadSettingsFromStorage() {
