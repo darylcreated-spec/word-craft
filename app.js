@@ -124,6 +124,9 @@ async function secureFetch(url, options = {}) {
       // Use relative path to let local http-server proxy bypass CORS
       const relativeUrl = url.replace('https://integrate.api.nvidia.com', '');
       return fetch(relativeUrl, options);
+    } else if (window.location.hostname.endsWith('.vercel.app')) {
+      const proxiedUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
+      return fetch(proxiedUrl, options);
     } else {
       const proxiedUrl = `https://corsproxy.io/?url=${encodeURIComponent(url)}`;
       return fetch(proxiedUrl, options);
