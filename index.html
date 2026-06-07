@@ -530,10 +530,15 @@
           <strong>Need a key?</strong>
           <p>Get a free Gemini API key from the <a href="https://aistudio.google.com/" target="_blank" rel="noopener">Google AI Studio</a>.</p>
         </div>
+
+        <div id="validation-status-container" style="display: none; margin-top: 12px; padding: 10px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; border: 1px solid transparent;"></div>
       </div>
-      <div class="modal-footer">
-        <button class="modal-btn secondary" onclick="closeSettings()">Cancel</button>
-        <button class="modal-btn primary" onclick="saveSettings()">Save Configuration</button>
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <button class="modal-btn secondary" id="btn-validate-api" onclick="validateSettingsConnection()">Validate</button>
+        <div style="display: flex; gap: 8px;">
+          <button class="modal-btn secondary" onclick="closeSettings()">Cancel</button>
+          <button class="modal-btn primary" onclick="saveSettings()">Save Configuration</button>
+        </div>
       </div>
     </div>
   </div>

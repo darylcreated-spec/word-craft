@@ -282,6 +282,8 @@ function openSettings() {
   document.getElementById('unlock-username-input').value = '';
   document.getElementById('unlock-password-input').value = '';
   document.getElementById('unlock-error-msg').style.display = 'none';
+  const statusEl = document.getElementById('validation-status-container');
+  if (statusEl) statusEl.style.display = 'none';
   document.getElementById('modal-passcode-unlock').classList.add('active');
   setTimeout(() => {
     const input = document.getElementById('unlock-username-input');
@@ -293,6 +295,160 @@ function openSettings() {
 function closeSettings() {
   document.getElementById('modal-settings').classList.remove('active');
   audio.playClick();
+}
+
+async function validateApiConfiguration(provider, key, model) {
+  if (!key || key.trim() === '' || key === 'null' || key === 'undefined') {
+    throw new Error("API Key is empty. Please enter a key or use the default.");
+  }
+  
+  const systemInstruction = "You are a test agent. Respond only with the word 'OK'.";
+  const promptText = "test";
+  
+  if (provider === 'gemini') {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+    const response = await secureFetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{ text: `${systemInstruction}\n\nUser Input:\n${promptText}` }]
+        }]
+      })
+    });
+    
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.error?.message || "HTTP error " + response.status);
+    }
+  } else {
+    const url = provider === 'openrouter'
+      ? "https://openrouter.ai/api/v1/chat/completions"
+      : "https://integrate.api.nvidia.com/v1/chat/completions";
+      
+    const response = await secureFetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${key}`
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          { role: 'system', content: systemInstruction },
+          { role: 'user', content: promptText }
+        ],
+        max_tokens: 5
+      })
+    });
+    
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.error?.message || `${provider === 'openrouter' ? 'OpenRouter' : 'NVIDIA'} error ` + response.status);
+    }
+  }
+  return true;
+}
+
+async function validateSettingsConnection() {
+  const provider = document.getElementById('settings-provider').value;
+  let key = document.getElementById('settings-api-key').value.trim();
+  let model = document.getElementById('settings-model').value;
+  
+  if (model === 'custom') {
+    model = document.getElementById('settings-custom-model').value.trim();
+    if (!model) {
+      alert("Please enter a custom model ID first!");
+      return;
+    }
+  }
+  
+  const validateBtn = document.getElementById('btn-validate-api');
+  const statusContainer = document.getElementById('validation-status-container');
+  
+  if (validateBtn) {
+    validateBtn.disabled = true;
+    validateBtn.textContent = "Validating...";
+  }
+  
+  if (statusContainer) {
+    statusContainer.style.display = 'block';
+    statusContainer.style.background = 'rgba(0, 240, 255, 0.08)';
+    statusContainer.style.borderColor = 'rgba(0, 240, 255, 0.2)';
+    statusContainer.style.color = 'var(--cyan)';
+    statusContainer.textContent = "Connecting to provider API to validate credentials...";
+  }
+  
+  if (!key || key.trim() === '' || key === 'null' || key === 'undefined') {
+    const defaults = window.DEFAULT_CONFIG || (typeof DEFAULT_CONFIG !== 'undefined' ? DEFAULT_CONFIG : null) || {
+      nvidiaApiKey: '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'
+    };
+    if (provider === 'nvidia' && defaults.nvidiaApiKey) {
+      key = defaults.nvidiaApiKey;
+      if (statusContainer) {
+        statusContainer.textContent = "Testing connection using default NVIDIA NIM credentials...";
+      }
+    } else {
+      if (validateBtn) {
+        validateBtn.disabled = false;
+        validateBtn.textContent = "Validate";
+      }
+      if (statusContainer) {
+        statusContainer.style.background = 'rgba(255, 71, 87, 0.08)';
+        statusContainer.style.borderColor = 'rgba(255, 71, 87, 0.2)';
+        statusContainer.style.color = 'var(--danger)';
+        statusContainer.textContent = "Validation Failed: API Key is missing! Please input a key or select NVIDIA NIM to use the default.";
+      }
+      audio.playError();
+      return;
+    }
+  }
+  
+  try {
+    await validateApiConfiguration(provider, key, model);
+    
+    if (statusContainer) {
+      statusContainer.style.background = 'rgba(46, 204, 113, 0.08)';
+      statusContainer.style.borderColor = 'rgba(46, 204, 113, 0.2)';
+      statusContainer.style.color = '#2ecc71';
+      statusContainer.textContent = "Validation Succeeded! Your API key and model configuration are working correctly.";
+    }
+    audio.playDiscover();
+  } catch (error) {
+    if (statusContainer) {
+      statusContainer.style.background = 'rgba(255, 71, 87, 0.08)';
+      statusContainer.style.borderColor = 'rgba(255, 71, 87, 0.2)';
+      statusContainer.style.color = 'var(--danger)';
+      statusContainer.textContent = `Validation Failed: ${error.message}`;
+    }
+    audio.playError();
+    
+    const defaults = window.DEFAULT_CONFIG || (typeof DEFAULT_CONFIG !== 'undefined' ? DEFAULT_CONFIG : null);
+    const usingDefaultNvidia = (provider === 'nvidia' && key === defaults?.nvidiaApiKey);
+    
+    let promptMsg = `API validation failed! Please check your API key and configuration.\n\nError: ${error.message}`;
+    if (!usingDefaultNvidia && defaults?.nvidiaApiKey) {
+      promptMsg += `\n\nWould you like to reset this key to the working default NVIDIA NIM credentials?`;
+      const resetToDefault = confirm(promptMsg);
+      if (resetToDefault) {
+        document.getElementById('settings-provider').value = 'nvidia';
+        document.getElementById('settings-api-key').value = '';
+        toggleApiProvider();
+        if (statusContainer) {
+          statusContainer.style.display = 'none';
+        }
+      }
+    } else {
+      alert(promptMsg);
+    }
+  } finally {
+    if (validateBtn) {
+      validateBtn.disabled = false;
+      validateBtn.textContent = "Validate";
+    }
+  }
 }
 
 function saveSettings() {
@@ -359,6 +515,9 @@ function saveSettings() {
 function toggleApiProvider() {
   const provider = document.getElementById('settings-provider').value;
   const keyInput = document.getElementById('settings-api-key');
+  
+  const statusEl = document.getElementById('validation-status-container');
+  if (statusEl) statusEl.style.display = 'none';
   
   if (provider === 'gemini') {
     keyInput.value = state.geminiApiKey || '';
