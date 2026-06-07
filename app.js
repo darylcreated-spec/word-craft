@@ -105,10 +105,22 @@ async function secureFetch(url, options = {}) {
   } else if (isExtensionInstalled) {
     return fetchViaBridge(url, options);
   } else {
+    // Check if running on file:// protocol without extension
+    if (window.location.protocol === 'file:' && !url.includes('generativelanguage.googleapis.com')) {
+      throw new Error("CORS Proxy Limitation: Running via 'file://' protocol without the Chrome extension prevents secure Authorization headers. Please run the local server via 'npm run dev' and open http://localhost:8000, or install the Chrome extension.");
+    }
+    
     // Proxy requests through corsproxy.io or local server proxy for APIs requiring CORS bypass when extension is not running
     if (url.includes('generativelanguage.googleapis.com')) {
       return fetch(url, options);
-    } else if (url.includes('integrate.api.nvidia.com') && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    } else if (url.includes('integrate.api.nvidia.com') && (
+      window.location.hostname === 'localhost' || 
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname.startsWith('192.168.') ||
+      window.location.hostname.startsWith('10.') ||
+      window.location.hostname.startsWith('172.') ||
+      window.location.port === '8000'
+    )) {
       // Use relative path to let local http-server proxy bypass CORS
       const relativeUrl = url.replace('https://integrate.api.nvidia.com', '');
       return fetch(relativeUrl, options);
@@ -998,7 +1010,7 @@ async function craftText() {
     return;
   }
   
-  if (!state.apiKey) {
+  if (!state.apiKey || state.apiKey.trim() === '' || state.apiKey === 'undefined' || state.apiKey === 'null') {
     const providerLabel = state.apiProvider === 'gemini' ? 'Gemini' : (state.apiProvider === 'openrouter' ? 'OpenRouter' : 'NVIDIA');
     alert(`${providerLabel} API Key is missing! Please click the Settings gear icon in the top right to configure your API key.`);
     openSettings();
@@ -3283,7 +3295,7 @@ function rebuildTextFromHeatmapSentences() {
 }
 
 async function requestAiContent(systemInstruction, promptText) {
-  if (!state.apiKey) {
+  if (!state.apiKey || state.apiKey.trim() === '' || state.apiKey === 'undefined' || state.apiKey === 'null') {
     throw new Error("API Key is missing. Please configure it in Settings.");
   }
   
