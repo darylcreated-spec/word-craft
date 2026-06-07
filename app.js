@@ -180,13 +180,13 @@ function loadSettingsFromStorage() {
   };
 
   const storedGeminiKey = localStorage.getItem('wc_api_key');
-  state.geminiApiKey = (storedGeminiKey !== null && storedGeminiKey !== '') ? storedGeminiKey : defaults.geminiApiKey;
+  state.geminiApiKey = (storedGeminiKey !== null && storedGeminiKey.trim() !== '' && storedGeminiKey !== 'null' && storedGeminiKey !== 'undefined') ? storedGeminiKey : defaults.geminiApiKey;
   
   const storedOpenRouterKey = localStorage.getItem('wc_openrouter_key');
-  state.openRouterApiKey = (storedOpenRouterKey !== null && storedOpenRouterKey !== '') ? storedOpenRouterKey : defaults.openRouterApiKey;
+  state.openRouterApiKey = (storedOpenRouterKey !== null && storedOpenRouterKey.trim() !== '' && storedOpenRouterKey !== 'null' && storedOpenRouterKey !== 'undefined') ? storedOpenRouterKey : defaults.openRouterApiKey;
   
   const storedNvidiaKey = localStorage.getItem('wc_nvidia_key');
-  state.nvidiaApiKey = (storedNvidiaKey !== null && storedNvidiaKey !== '') ? storedNvidiaKey : defaults.nvidiaApiKey;
+  state.nvidiaApiKey = (storedNvidiaKey !== null && storedNvidiaKey.trim() !== '' && storedNvidiaKey !== 'null' && storedNvidiaKey !== 'undefined') ? storedNvidiaKey : defaults.nvidiaApiKey;
 
   const storedProvider = localStorage.getItem('wc_api_provider');
   if (storedProvider === 'gemini' && !state.geminiApiKey && state.nvidiaApiKey) {
@@ -320,13 +320,13 @@ function saveSettings() {
 
   state.apiProvider = provider;
   if (provider === 'gemini') {
-    state.geminiApiKey = key || defaults.geminiApiKey;
+    state.geminiApiKey = (key && key.trim() !== '' && key !== 'null' && key !== 'undefined') ? key : defaults.geminiApiKey;
     localStorage.setItem('wc_api_key', key);
   } else if (provider === 'openrouter') {
-    state.openRouterApiKey = key || defaults.openRouterApiKey;
+    state.openRouterApiKey = (key && key.trim() !== '' && key !== 'null' && key !== 'undefined') ? key : defaults.openRouterApiKey;
     localStorage.setItem('wc_openrouter_key', key);
   } else {
-    state.nvidiaApiKey = key || defaults.nvidiaApiKey;
+    state.nvidiaApiKey = (key && key.trim() !== '' && key !== 'null' && key !== 'undefined') ? key : defaults.nvidiaApiKey;
     localStorage.setItem('wc_nvidia_key', key);
   }
 
