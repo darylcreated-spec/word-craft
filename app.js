@@ -999,7 +999,8 @@ async function craftText() {
   }
   
   if (!state.apiKey) {
-    alert("Gemini API Key is missing! Please click the Settings gear icon in the top right to configure your API key.");
+    const providerLabel = state.apiProvider === 'gemini' ? 'Gemini' : (state.apiProvider === 'openrouter' ? 'OpenRouter' : 'NVIDIA');
+    alert(`${providerLabel} API Key is missing! Please click the Settings gear icon in the top right to configure your API key.`);
     openSettings();
     return;
   }
