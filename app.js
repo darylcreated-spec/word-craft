@@ -4124,3 +4124,294 @@ window.addEventListener('click', (e) => {
   }
 });
 
+// Mobile Actions Drawer Toggling and Dynamic Populating
+function openMobileActionsDrawer(paneType) {
+  const backdrop = document.getElementById('modal-mobile-actions');
+  const container = document.getElementById('mobile-actions-container');
+  const title = document.getElementById('mobile-drawer-title');
+  if (!backdrop || !container || !title) return;
+
+  container.innerHTML = '';
+  audio.playClick();
+
+  if (paneType === 'input') {
+    title.textContent = 'Input Actions';
+
+    // 1. Craft/Analyze Text
+    const actionLabel = state.craftType === 'manual' ? 'ANALYZE TEXT' : 'CRAFT TEXT';
+    const craftBtn = document.createElement('button');
+    craftBtn.className = 'drawer-menu-item';
+    craftBtn.innerHTML = `
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 3.99L18.49 19H5.51L12 5.99z" fill="currentColor"/></svg>
+      <span>${actionLabel}</span>
+    `;
+    craftBtn.onclick = () => {
+      closeMobileActionsDrawer();
+      triggerMainAction();
+    };
+    container.appendChild(craftBtn);
+
+    // 2. Import Document
+    const importBtn = document.createElement('button');
+    importBtn.className = 'drawer-menu-item';
+    importBtn.innerHTML = `
+      <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" fill="currentColor"/></svg>
+      <span>Import Document (.docx, .pdf, .txt)</span>
+    `;
+    importBtn.onclick = () => {
+      closeMobileActionsDrawer();
+      document.getElementById('docx-upload').click();
+    };
+    container.appendChild(importBtn);
+
+    // 3. Voice Dictation
+    const dictateBtn = document.createElement('button');
+    dictateBtn.className = `drawer-menu-item ${state.isRecording ? 'recording-active' : ''}`;
+    dictateBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+      <span>${state.isRecording ? 'Stop Recording' : 'Voice Dictate'}</span>
+    `;
+    dictateBtn.onclick = () => {
+      closeMobileActionsDrawer();
+      toggleDictation();
+    };
+    container.appendChild(dictateBtn);
+
+    // 4. Clear Input
+    const clearBtn = document.createElement('button');
+    clearBtn.className = 'drawer-menu-item text-danger';
+    clearBtn.innerHTML = `
+      <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="currentColor"/></svg>
+      <span>Clear Draft</span>
+    `;
+    clearBtn.onclick = () => {
+      closeMobileActionsDrawer();
+      clearEditorInput();
+    };
+    container.appendChild(clearBtn);
+
+  } else {
+    title.textContent = 'Output Actions';
+
+    if (state.craftType === 'manual') {
+      // Manual Mode Actions
+      // 1. Undo
+      const isUndoDisabled = state.manualHistoryIndex <= 0;
+      const undoBtn = document.createElement('button');
+      undoBtn.className = 'drawer-menu-item';
+      if (isUndoDisabled) undoBtn.disabled = true;
+      undoBtn.innerHTML = `
+        <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.2 8 12.5 8z" fill="currentColor"/></svg>
+        <span>Undo Edit</span>
+      `;
+      undoBtn.onclick = () => {
+        closeMobileActionsDrawer();
+        triggerManualUndo();
+      };
+      container.appendChild(undoBtn);
+
+      // 2. Redo
+      const isRedoDisabled = state.manualHistoryIndex >= state.manualHistory.length - 1;
+      const redoBtn = document.createElement('button');
+      redoBtn.className = 'drawer-menu-item';
+      if (isRedoDisabled) redoBtn.disabled = true;
+      redoBtn.innerHTML = `
+        <svg viewBox="0 0 24 24"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.7 0-8.58 3.03-9.96 7.22l2.37.78c1.05-3.19 4.06-5.5 7.59-5.5 1.96 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z" fill="currentColor"/></svg>
+        <span>Redo Edit</span>
+      `;
+      redoBtn.onclick = () => {
+        closeMobileActionsDrawer();
+        triggerManualRedo();
+      };
+      container.appendChild(redoBtn);
+
+      // 3. Apply Edits
+      const applyBtn = document.createElement('button');
+      applyBtn.className = 'drawer-menu-item';
+      applyBtn.innerHTML = `
+        <svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" fill="currentColor"/></svg>
+        <span>Apply Edits</span>
+      `;
+      applyBtn.onclick = () => {
+        closeMobileActionsDrawer();
+        syncManualToInput();
+      };
+      container.appendChild(applyBtn);
+
+      // 4. Copy
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'drawer-menu-item';
+      copyBtn.innerHTML = `
+        <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" fill="currentColor"/></svg>
+        <span>Copy to Clipboard</span>
+      `;
+      copyBtn.onclick = () => {
+        closeMobileActionsDrawer();
+        copyManualText();
+      };
+      container.appendChild(copyBtn);
+
+      // 5. Export
+      const exportBtn = document.createElement('button');
+      exportBtn.className = 'drawer-menu-item';
+      exportBtn.innerHTML = `
+        <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z" fill="currentColor"/></svg>
+        <span>Export as .txt File</span>
+      `;
+      exportBtn.onclick = () => {
+        closeMobileActionsDrawer();
+        exportCraftedText();
+      };
+      container.appendChild(exportBtn);
+
+      // 6. Read Aloud
+      const readBtn = document.createElement('button');
+      readBtn.className = `drawer-menu-item ${state.isSpeaking ? 'speaking-active' : ''}`;
+      readBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+        <span>${state.isSpeaking ? 'Stop Speaking' : 'Read Aloud'}</span>
+      `;
+      readBtn.onclick = () => {
+        closeMobileActionsDrawer();
+        toggleSpeechManual();
+      };
+      container.appendChild(readBtn);
+
+      // 7. Clear Output
+      const clearBtn = document.createElement('button');
+      clearBtn.className = 'drawer-menu-item text-danger';
+      clearBtn.innerHTML = `
+        <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="currentColor"/></svg>
+        <span>Clear Workspace</span>
+      `;
+      clearBtn.onclick = () => {
+        closeMobileActionsDrawer();
+        clearCraftedOutput();
+      };
+      container.appendChild(clearBtn);
+
+    } else {
+      // AI / Auto / Projects Mode Actions
+      // 1. Undo
+      const isUndoDisabled = state.autoHistoryIndex <= 0;
+      const undoBtn = document.createElement('button');
+      undoBtn.className = 'drawer-menu-item';
+      if (isUndoDisabled) undoBtn.disabled = true;
+      undoBtn.innerHTML = `
+        <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.2 8 12.5 8z" fill="currentColor"/></svg>
+        <span>Undo Rewrite</span>
+      `;
+      undoBtn.onclick = () => {
+        closeMobileActionsDrawer();
+        triggerAutoUndo();
+      };
+      container.appendChild(undoBtn);
+
+      // 2. Redo
+      const isRedoDisabled = state.autoHistoryIndex >= state.autoHistory.length - 1;
+      const redoBtn = document.createElement('button');
+      redoBtn.className = 'drawer-menu-item';
+      if (isRedoDisabled) redoBtn.disabled = true;
+      redoBtn.innerHTML = `
+        <svg viewBox="0 0 24 24"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.7 0-8.58 3.03-9.96 7.22l2.37.78c1.05-3.19 4.06-5.5 7.59-5.5 1.96 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z" fill="currentColor"/></svg>
+        <span>Redo Rewrite</span>
+      `;
+      redoBtn.onclick = () => {
+        closeMobileActionsDrawer();
+        triggerAutoRedo();
+      };
+      container.appendChild(redoBtn);
+
+      // 3. AI Scan (Heatmap)
+      const scanBtn = document.createElement('button');
+      scanBtn.className = 'drawer-menu-item';
+      scanBtn.innerHTML = `
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z" fill="currentColor"/></svg>
+        <span>${state.showHeatmap ? 'Show Plain Text' : 'Scan AI Heatmap'}</span>
+      `;
+      scanBtn.onclick = () => {
+        closeMobileActionsDrawer();
+        toggleHeatmapView();
+      };
+      container.appendChild(scanBtn);
+
+      // 4. Changes (Diff)
+      const diffBtn = document.createElement('button');
+      diffBtn.className = 'drawer-menu-item';
+      diffBtn.innerHTML = `
+        <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.2 8 12.5 8z" fill="currentColor"/></svg>
+        <span>${state.showDiff ? 'Show Plain Text' : 'View Changes (Diff)'}</span>
+      `;
+      diffBtn.onclick = () => {
+        closeMobileActionsDrawer();
+        toggleDiffView();
+      };
+      container.appendChild(diffBtn);
+
+      // 5. Copy
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'drawer-menu-item';
+      copyBtn.innerHTML = `
+        <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" fill="currentColor"/></svg>
+        <span>Copy to Clipboard</span>
+      `;
+      copyBtn.onclick = () => {
+        closeMobileActionsDrawer();
+        copyCraftedText();
+      };
+      container.appendChild(copyBtn);
+
+      // 6. Export
+      const exportBtn = document.createElement('button');
+      exportBtn.className = 'drawer-menu-item';
+      exportBtn.innerHTML = `
+        <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z" fill="currentColor"/></svg>
+        <span>Export as .txt File</span>
+      `;
+      exportBtn.onclick = () => {
+        closeMobileActionsDrawer();
+        exportCraftedText();
+      };
+      container.appendChild(exportBtn);
+
+      // 7. Read Aloud
+      const readBtn = document.createElement('button');
+      readBtn.className = `drawer-menu-item ${state.isSpeaking ? 'speaking-active' : ''}`;
+      readBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+        <span>${state.isSpeaking ? 'Stop Speaking' : 'Read Aloud'}</span>
+      `;
+      readBtn.onclick = () => {
+        closeMobileActionsDrawer();
+        toggleSpeech();
+      };
+      container.appendChild(readBtn);
+
+      // 8. Clear Output
+      const clearBtn = document.createElement('button');
+      clearBtn.className = 'drawer-menu-item text-danger';
+      clearBtn.innerHTML = `
+        <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="currentColor"/></svg>
+        <span>Clear Output</span>
+      `;
+      clearBtn.onclick = () => {
+        closeMobileActionsDrawer();
+        clearCraftedOutput();
+      };
+      container.appendChild(clearBtn);
+    }
+  }
+
+  backdrop.classList.add('active');
+}
+
+function closeMobileActionsDrawer() {
+  const backdrop = document.getElementById('modal-mobile-actions');
+  if (backdrop) {
+    backdrop.classList.remove('active');
+    audio.playClick();
+  }
+}
+
+window.openMobileActionsDrawer = openMobileActionsDrawer;
+window.closeMobileActionsDrawer = closeMobileActionsDrawer;
