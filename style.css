@@ -2640,7 +2640,8 @@ body.is-touch-device .form-select {
 
   #app-title-label {
     order: 4;
-    width: 100%;
+    width: auto;
+    flex-grow: 1;
     text-align: center;
     font-size: 0.82rem;
     margin-top: 6px;
@@ -2651,6 +2652,24 @@ body.is-touch-device .form-select {
   .header-logo {
     max-width: none;
   }
+
+  /* Reposition active pane's mobile actions button into the header next to the title label */
+  .editor-pane .pane-header .btn-mobile-actions-trigger {
+    position: absolute;
+    top: 50px; /* Align with the centered title row */
+    right: 16px;
+    z-index: 150;
+    height: 26px;
+    font-size: 0.72rem;
+    padding: 0 10px;
+    border-color: var(--cyan);
+    background: rgba(0, 240, 255, 0.03);
+  }
+
+  .editor-pane .pane-header {
+    position: relative;
+  }
 }
+
 
 
