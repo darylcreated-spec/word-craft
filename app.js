@@ -4413,5 +4413,15 @@ function closeMobileActionsDrawer() {
   }
 }
 
+function triggerActiveMobileActions() {
+  if (state.mobileActivePane === 'output') {
+    openMobileActionsDrawer('output');
+  } else {
+    openMobileActionsDrawer('input');
+  }
+}
+
 window.openMobileActionsDrawer = openMobileActionsDrawer;
 window.closeMobileActionsDrawer = closeMobileActionsDrawer;
+window.triggerActiveMobileActions = triggerActiveMobileActions;
+

@@ -2640,31 +2640,39 @@ body.is-touch-device .form-select {
 
   #app-title-label {
     order: 4;
-    width: auto;
-    flex-grow: 1;
+    width: 100%;
     text-align: center;
     font-size: 0.82rem;
     margin-top: 6px;
     padding-top: 6px;
     border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
   }
 
   .header-logo {
     max-width: none;
   }
 
-  /* Reposition active pane's mobile actions button into the header next to the title label */
-  .editor-pane .pane-header .btn-mobile-actions-trigger {
-    position: fixed;
-    top: 74px; /* Align inline next to the wrapped app title label row */
-    right: 16px;
-    z-index: 105; /* Sit above the header content but below dropdown overlay */
+  /* Style mobile actions button situated next to the centered title in the header */
+  #header-mobile-actions-trigger {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
     height: 24px;
     font-size: 0.72rem;
     padding: 0 10px;
     border-color: var(--cyan);
     background: rgba(0, 240, 255, 0.03);
     box-shadow: var(--shadow-sm);
+    text-transform: uppercase;
+  }
+
+  /* Hide the old pane-header actions button since it is now positioned in the header next to the title */
+  .editor-pane .pane-header .btn-mobile-actions-trigger {
+    display: none !important;
   }
 }
 
