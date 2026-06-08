@@ -2655,19 +2655,16 @@ body.is-touch-device .form-select {
 
   /* Reposition active pane's mobile actions button into the header next to the title label */
   .editor-pane .pane-header .btn-mobile-actions-trigger {
-    position: absolute;
-    top: 50px; /* Align with the centered title row */
+    position: fixed;
+    top: 74px; /* Align inline next to the wrapped app title label row */
     right: 16px;
-    z-index: 150;
-    height: 26px;
+    z-index: 105; /* Sit above the header content but below dropdown overlay */
+    height: 24px;
     font-size: 0.72rem;
     padding: 0 10px;
     border-color: var(--cyan);
     background: rgba(0, 240, 255, 0.03);
-  }
-
-  .editor-pane .pane-header {
-    position: relative;
+    box-shadow: var(--shadow-sm);
   }
 }
 
