@@ -1950,6 +1950,9 @@ async function updateSynonymsProgressively(index, newText) {
     synonyms = synonyms.filter(w => w.toLowerCase() !== cleanWord);
     antonyms = antonyms.filter(w => w.toLowerCase() !== cleanWord);
     
+    // Capitalization formatting logic
+    const isCapitalized = newText[0] === newText[0].toUpperCase() && newText[0] !== newText[0].toLowerCase();
+    
     const listEl = document.getElementById('selected-word-synonyms');
     const antListEl = document.getElementById('selected-word-antonyms');
     
@@ -1959,10 +1962,11 @@ async function updateSynonymsProgressively(index, newText) {
         listEl.innerHTML = '<span class="placeholder-word-text">No synonyms found.</span>';
       } else {
         synonyms.forEach(syn => {
+          const displaySyn = isCapitalized ? syn[0].toUpperCase() + syn.slice(1) : syn;
           const chip = document.createElement('span');
           chip.className = 'synonym-chip';
-          chip.textContent = syn;
-          chip.onclick = () => selectSynonymReplacement(index, syn);
+          chip.textContent = displaySyn;
+          chip.onclick = () => replaceWord(index, displaySyn);
           listEl.appendChild(chip);
         });
       }
@@ -1974,10 +1978,11 @@ async function updateSynonymsProgressively(index, newText) {
         antListEl.innerHTML = '<span class="placeholder-word-text">No antonyms found.</span>';
       } else {
         antonyms.forEach(ant => {
+          const displayAnt = isCapitalized ? ant[0].toUpperCase() + ant.slice(1) : ant;
           const chip = document.createElement('span');
-          chip.className = 'synonym-chip';
-          chip.textContent = ant;
-          chip.onclick = () => selectSynonymReplacement(index, ant);
+          chip.className = 'synonym-chip antonym-type';
+          chip.textContent = displayAnt;
+          chip.onclick = () => replaceWord(index, displayAnt);
           antListEl.appendChild(chip);
         });
       }
@@ -1990,11 +1995,12 @@ async function updateSynonymsProgressively(index, newText) {
       if (synonyms.length > 0) {
         popup.innerHTML += `<div class="dropdown-sub-header-title">Synonyms</div>`;
         synonyms.slice(0, 6).forEach(syn => {
+          const displaySyn = isCapitalized ? syn[0].toUpperCase() + syn.slice(1) : syn;
           const item = document.createElement('div');
           item.className = 'dropdown-syn-item';
-          item.textContent = syn;
+          item.textContent = displaySyn;
           item.onclick = () => {
-            selectSynonymReplacement(index, syn);
+            replaceWord(index, displaySyn);
             popup.classList.remove('active');
           };
           popup.appendChild(item);
@@ -2003,11 +2009,12 @@ async function updateSynonymsProgressively(index, newText) {
       if (antonyms.length > 0) {
         popup.innerHTML += `<div class="dropdown-sub-header-title">Antonyms</div>`;
         antonyms.slice(0, 4).forEach(ant => {
+          const displayAnt = isCapitalized ? ant[0].toUpperCase() + ant.slice(1) : ant;
           const item = document.createElement('div');
           item.className = 'dropdown-syn-item antonym-item-type';
-          item.textContent = ant;
+          item.textContent = displayAnt;
           item.onclick = () => {
-            selectSynonymReplacement(index, ant);
+            replaceWord(index, displayAnt);
             popup.classList.remove('active');
           };
           popup.appendChild(item);
