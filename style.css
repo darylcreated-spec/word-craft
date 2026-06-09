@@ -1567,12 +1567,30 @@ body.theme-light .craft-type-tabs {
   }
 
   .editor-pane {
-    height: calc(100vh - 156px) !important; /* Subtract header + mobile tabs + craft tabs */
+    height: auto !important;
+    min-height: calc(100vh - 156px) !important;
     display: none; /* Hide by default; controlled by js */
+    flex-direction: column;
   }
 
   .editor-pane.active-pane {
     display: flex !important;
+  }
+
+  .editor-body {
+    height: auto !important;
+    flex: 1 0 auto !important;
+  }
+
+  .editor-body textarea,
+  .diff-container,
+  .heatmap-container,
+  .manual-workspace-container,
+  .reviews-output-container {
+    height: auto !important;
+    min-height: 350px !important;
+    overflow-y: hidden !important;
+    overflow-x: hidden !important;
   }
 
   .craft-type-tabs {
@@ -1836,7 +1854,8 @@ body.theme-light .pane-footer {
   }
   body.theme-dark .editor-pane,
   body.theme-light .editor-pane {
-    height: calc(100vh - 192px) !important;
+    height: auto !important;
+    min-height: calc(100vh - 192px) !important;
   }
 }
 

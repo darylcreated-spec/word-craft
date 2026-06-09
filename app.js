@@ -144,6 +144,28 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   state.userUuid = userUuid;
 
+  // Override HTMLTextAreaElement.prototype.value descriptor to detect programmatical updates
+  const originalValueSetter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
+  Object.defineProperty(HTMLTextAreaElement.prototype, 'value', {
+    set: function(val) {
+      originalValueSetter.call(this, val);
+      if (this.id === 'editor-input' || this.id === 'editor-output') {
+        autoExpandTextarea(this);
+      }
+    },
+    get: Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').get,
+    configurable: true
+  });
+
+  const editorInputEl = document.getElementById('editor-input');
+  const editorOutputEl = document.getElementById('editor-output');
+  if (editorInputEl) {
+    editorInputEl.addEventListener('input', () => autoExpandTextarea(editorInputEl));
+  }
+  if (editorOutputEl) {
+    editorOutputEl.addEventListener('input', () => autoExpandTextarea(editorOutputEl));
+  }
+
   // Load data from LocalStorage
   loadSettingsFromStorage();
   
@@ -682,6 +704,16 @@ function initMobileViews() {
   switchMobileEditorPane(state.mobileActivePane);
 }
 
+function autoExpandTextarea(textarea) {
+  if (!textarea) return;
+  if (window.innerWidth <= 768) {
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+  } else {
+    textarea.style.height = '';
+  }
+}
+
 function adjustTabsPosition() {
   const tabs = document.querySelector('.craft-type-tabs');
   if (!tabs) return;
@@ -698,6 +730,10 @@ function adjustTabsPosition() {
       panel.insertBefore(tabs, panel.firstChild);
     }
   }
+  
+  // Trigger auto-expand for textareas on viewport adjustments
+  autoExpandTextarea(document.getElementById('editor-input'));
+  autoExpandTextarea(document.getElementById('editor-output'));
 }
 
 function toggleMobileSidebar(isOpen) {
@@ -742,6 +778,12 @@ function switchMobileEditorPane(pane) {
     if (tabInput) tabInput.classList.remove('active');
     if (tabOutput) tabOutput.classList.add('active');
   }
+  
+  // Update textarea expansion when mobile pane switches
+  setTimeout(() => {
+    autoExpandTextarea(document.getElementById('editor-input'));
+    autoExpandTextarea(document.getElementById('editor-output'));
+  }, 50);
 }
 
 // --- Switch between AI Auto-Craft, Manual Word Craft, and Reviews ---
