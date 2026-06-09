@@ -1490,6 +1490,21 @@ body.theme-light .craft-type-tabs {
 }
 
 @media (max-width: 768px) {
+  body {
+    overflow-y: auto !important;
+  }
+
+  #app-container {
+    height: auto !important;
+    min-height: 100vh;
+    overflow-y: auto !important;
+  }
+
+  .app-workspace {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
   /* Toggle header button visible on mobile */
   #btn-toggle-sidebar {
     display: flex !important;
