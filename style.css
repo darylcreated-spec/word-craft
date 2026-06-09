@@ -1042,7 +1042,14 @@ body.theme-light .craft-type-tabs {
   border-radius: 3px;
   border-bottom: 2px dashed transparent;
   transition: all var(--transition-fast);
-  user-select: none;
+  user-select: text; /* Allow text editing selection */
+}
+
+.word-span:focus {
+  outline: none;
+  background: var(--primary-glow);
+  box-shadow: 0 0 0 2px var(--border-color-focus);
+  cursor: text;
 }
 
 /* Underscores matching POS tags */

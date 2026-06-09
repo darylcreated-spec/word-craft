@@ -1821,6 +1821,8 @@ function renderManualWorkspace() {
     span.className = `word-span pos-${token.posGroup}`;
     span.textContent = token.text;
     span.dataset.index = idx;
+    span.contentEditable = "true";
+    span.spellcheck = false;
     
     // Active state highlighting
     if (state.selectedWordIndex === idx) {
@@ -1837,6 +1839,36 @@ function renderManualWorkspace() {
       selectWord(idx, e);
     });
     
+    let debounceTimer = null;
+    span.addEventListener('input', (e) => {
+      const newText = span.textContent;
+      state.manualTokens[idx].text = newText;
+      
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        rescanTokenProgressively(idx, newText, span);
+      }, 250);
+    });
+
+    span.addEventListener('focus', (e) => {
+      state.selectedWordIndex = idx;
+      document.querySelectorAll('.word-span').forEach(s => s.classList.remove('active'));
+      span.classList.add('active');
+      selectWord(idx, e);
+    });
+
+    span.addEventListener('blur', () => {
+      rebuildInputFromTokens();
+      pushManualHistory(document.getElementById('editor-input').value);
+    });
+
+    span.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        span.blur();
+      }
+    });
+    
     root.appendChild(span);
     
     // 3. Spacing/Punctuation after word
@@ -1846,6 +1878,145 @@ function renderManualWorkspace() {
   });
   
   container.appendChild(root);
+}
+
+function rescanTokenProgressively(idx, newText, span) {
+  if (!window.nlp) return;
+  const doc = window.nlp(newText);
+  const sentences = doc.json();
+  const terms = [];
+  sentences.forEach(s => {
+    if (s.terms) terms.push(...s.terms);
+  });
+  
+  if (terms.length > 0) {
+    const t = terms[0];
+    const tags = t.tags || [];
+    const posGroup = determinePOSGroup(tags);
+    
+    state.manualTokens[idx].tags = tags;
+    state.manualTokens[idx].posGroup = posGroup;
+    
+    span.className = `word-span pos-${posGroup} active`;
+    const displayTag = tags.length > 0 ? cleanTagName(tags[0]) : 'Word';
+    span.title = `Grammar: ${displayTag}`;
+    
+    updateSynonymsProgressively(idx, newText);
+  }
+}
+
+async function updateSynonymsProgressively(index, newText) {
+  const cleanWord = newText.replace(/[^\w-]/g, '').toLowerCase();
+  if (!cleanWord) return;
+  
+  document.getElementById('selected-word-name').textContent = newText;
+  
+  const token = state.manualTokens[index];
+  const tagEl = document.getElementById('selected-word-tag');
+  if (tagEl) {
+    tagEl.className = `active-word-tag ${token.posGroup}`;
+    tagEl.textContent = token.tags.length > 0 ? cleanTagName(token.tags[0]) : 'Word';
+  }
+
+  try {
+    const relUrl = `https://api.datamuse.com/words?rel_syn=${cleanWord}&max=8`;
+    const mlUrl = `https://api.datamuse.com/words?ml=${cleanWord}&max=12`;
+    const antUrl = `https://api.datamuse.com/words?rel_ant=${cleanWord}&max=8`;
+    
+    const [relRes, antRes, mlRes] = await Promise.all([
+      fetch(relUrl),
+      fetch(antUrl),
+      fetch(mlUrl)
+    ]);
+    
+    let synonyms = [];
+    let antonyms = [];
+    
+    if (relRes.ok) {
+      const data = await relRes.json();
+      synonyms.push(...data.map(w => w.word));
+    }
+    if (mlRes.ok) {
+      const data = await mlRes.json();
+      data.forEach(w => {
+        if (!synonyms.includes(w.word)) synonyms.push(w.word);
+      });
+    }
+    if (antRes.ok) {
+      const data = await antRes.json();
+      antonyms.push(...data.map(w => w.word));
+    }
+    
+    synonyms = synonyms.filter(w => w.toLowerCase() !== cleanWord);
+    antonyms = antonyms.filter(w => w.toLowerCase() !== cleanWord);
+    
+    const listEl = document.getElementById('selected-word-synonyms');
+    const antListEl = document.getElementById('selected-word-antonyms');
+    
+    if (listEl) {
+      listEl.innerHTML = '';
+      if (synonyms.length === 0) {
+        listEl.innerHTML = '<span class="placeholder-word-text">No synonyms found.</span>';
+      } else {
+        synonyms.forEach(syn => {
+          const chip = document.createElement('span');
+          chip.className = 'synonym-chip';
+          chip.textContent = syn;
+          chip.onclick = () => selectSynonymReplacement(index, syn);
+          listEl.appendChild(chip);
+        });
+      }
+    }
+    
+    if (antListEl) {
+      antListEl.innerHTML = '';
+      if (antonyms.length === 0) {
+        antListEl.innerHTML = '<span class="placeholder-word-text">No antonyms found.</span>';
+      } else {
+        antonyms.forEach(ant => {
+          const chip = document.createElement('span');
+          chip.className = 'synonym-chip';
+          chip.textContent = ant;
+          chip.onclick = () => selectSynonymReplacement(index, ant);
+          antListEl.appendChild(chip);
+        });
+      }
+    }
+    
+    // Update floating popup choices if visible
+    const popup = document.getElementById('synonym-popup');
+    if (popup && popup.classList.contains('active')) {
+      popup.innerHTML = `<div class="dropdown-header-title">"${newText}" Choices</div>`;
+      if (synonyms.length > 0) {
+        popup.innerHTML += `<div class="dropdown-sub-header-title">Synonyms</div>`;
+        synonyms.slice(0, 6).forEach(syn => {
+          const item = document.createElement('div');
+          item.className = 'dropdown-syn-item';
+          item.textContent = syn;
+          item.onclick = () => {
+            selectSynonymReplacement(index, syn);
+            popup.classList.remove('active');
+          };
+          popup.appendChild(item);
+        });
+      }
+      if (antonyms.length > 0) {
+        popup.innerHTML += `<div class="dropdown-sub-header-title">Antonyms</div>`;
+        antonyms.slice(0, 4).forEach(ant => {
+          const item = document.createElement('div');
+          item.className = 'dropdown-syn-item antonym-item-type';
+          item.textContent = ant;
+          item.onclick = () => {
+            selectSynonymReplacement(index, ant);
+            popup.classList.remove('active');
+          };
+          popup.appendChild(item);
+        });
+      }
+    }
+  } catch (err) {
+    console.error("Progressive synonyms error:", err);
+  }
 }
 
 function cleanTagName(tag) {
