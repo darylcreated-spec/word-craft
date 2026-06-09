@@ -1552,12 +1552,26 @@ body.theme-light .craft-type-tabs {
   }
 
   .editor-pane {
-    height: calc(100vh - 108px) !important; /* Subtract header + mobile tabs */
+    height: calc(100vh - 156px) !important; /* Subtract header + mobile tabs + craft tabs */
     display: none; /* Hide by default; controlled by js */
   }
 
   .editor-pane.active-pane {
     display: flex !important;
+  }
+
+  .craft-type-tabs {
+    grid-template-columns: repeat(4, 1fr) !important;
+    margin: 4px 6px 8px 6px !important;
+    padding: 4px !important;
+    gap: 4px !important;
+    border-radius: var(--radius-sm) !important;
+  }
+
+  .craft-tab-btn {
+    padding: 8px 2px !important;
+    font-size: 0.7rem !important;
+    letter-spacing: -0.2px !important;
   }
 
 
@@ -1807,7 +1821,7 @@ body.theme-light .pane-footer {
   }
   body.theme-dark .editor-pane,
   body.theme-light .editor-pane {
-    height: calc(100vh - 144px) !important;
+    height: calc(100vh - 192px) !important;
   }
 }
 

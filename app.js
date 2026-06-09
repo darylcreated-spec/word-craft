@@ -187,6 +187,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // Window Resize Listener
   window.addEventListener('resize', () => {
     initMobileViews();
+    adjustTabsPosition();
     // Dismiss contextual synonym overlay popup on mobile view transitions
     const synonymPopup = document.getElementById('synonym-popup');
     if (synonymPopup && window.innerWidth <= 768) {
@@ -196,6 +197,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Load projects from cloud
   loadProjectsFromDb();
+  adjustTabsPosition();
 });
 
 function loadSettingsFromStorage() {
@@ -678,6 +680,24 @@ function checkUnlockKey(event) {
 }
 function initMobileViews() {
   switchMobileEditorPane(state.mobileActivePane);
+}
+
+function adjustTabsPosition() {
+  const tabs = document.querySelector('.craft-type-tabs');
+  if (!tabs) return;
+  
+  if (window.innerWidth <= 768) {
+    const container = document.querySelector('.twin-editors-container');
+    if (container && tabs.parentElement !== container) {
+      container.insertBefore(tabs, container.firstChild);
+    }
+  } else {
+    // Desktop: move tabs back to the top of editor-options-panel
+    const panel = document.querySelector('.editor-options-panel');
+    if (panel && tabs.parentElement !== panel) {
+      panel.insertBefore(tabs, panel.firstChild);
+    }
+  }
 }
 
 function toggleMobileSidebar(isOpen) {
